@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="robots" content="noindex">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Gebauer Fragebogen</title>
+<meta name="theme-color" content="#2d5f5a">
+<style>
+:root{
+  --ground:#edf1ef; --surface:#ffffff; --surface-2:#f5f8f7; --line:#d5dedb;
+  --ink:#1b2a29; --ink-2:#4d5e5b; --ink-3:#778784;
+  --accent:#2d5f5a; --accent-ink:#ffffff; --accent-soft:#dbe9e6;
+  --s-phq:#2a78d6; --s-gad:#eb6834;
+  --band1:rgba(120,140,135,.05); --band2:rgba(120,140,135,.10); --band3:rgba(120,140,135,.17);
+  --band4:rgba(120,140,135,.25); --band5:rgba(120,140,135,.34);
+  --ok-bg:#e3f0e6; --ok-ink:#23583a; --warn-bg:#fbefd6; --warn-ink:#7a4d00;
+  --serious-bg:#fbe3d6; --serious-ink:#8a3a12; --crit-bg:#fadcdc; --crit-ink:#9b1c1c; --crit:#c62828;
+  --brand:#17393a;
+  --radius:14px;
+  --font:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#111716; --surface:#19211f; --surface-2:#1f2826; --line:#2f3b39;
+    --ink:#e5eeec; --ink-2:#aebdba; --ink-3:#83938f;
+    --accent:#7fb8b0; --accent-ink:#0f1a18; --accent-soft:#233532; --brand:#cfe3df;
+    --s-phq:#3987e5; --s-gad:#d95926;
+    --band1:rgba(170,190,185,.03); --band2:rgba(170,190,185,.07); --band3:rgba(170,190,185,.12);
+    --band4:rgba(170,190,185,.18); --band5:rgba(170,190,185,.25);
+    --ok-bg:#1d3326; --ok-ink:#9fd6b0; --warn-bg:#3a2e12; --warn-ink:#f0c46a;
+    --serious-bg:#3d2417; --serious-ink:#f3a57c; --crit-bg:#431c1c; --crit-ink:#ff9b9b; --crit:#ef5350;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#111716; --surface:#19211f; --surface-2:#1f2826; --line:#2f3b39;
+  --ink:#e5eeec; --ink-2:#aebdba; --ink-3:#83938f;
+  --accent:#7fb8b0; --accent-ink:#0f1a18; --accent-soft:#233532; --brand:#cfe3df;
+  --s-phq:#3987e5; --s-gad:#d95926;
+  --band1:rgba(170,190,185,.03); --band2:rgba(170,190,185,.07); --band3:rgba(170,190,185,.12);
+  --band4:rgba(170,190,185,.18); --band5:rgba(170,190,185,.25);
+  --ok-bg:#1d3326; --ok-ink:#9fd6b0; --warn-bg:#3a2e12; --warn-ink:#f0c46a;
+  --serious-bg:#3d2417; --serious-ink:#f3a57c; --crit-bg:#431c1c; --crit-ink:#ff9b9b; --crit:#ef5350;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--ground);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.5;
+  padding-inline:16px;-webkit-tap-highlight-color:transparent}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.2}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-2)}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:.6rem 1rem;min-height:44px}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.btn.danger{color:var(--crit-ink)}
+.btn:disabled{opacity:.45;cursor:default}
+.field{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:.6rem .8rem;min-height:44px}
+
+/* ---------- Klientenmodus ---------- */
+.kiosk{min-height:100%;display:flex;flex-direction:column;max-width:760px;margin:0 auto;padding-block:20px 28px}
+.kiosk-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:1.25rem;letter-spacing:.02em;color:var(--brand)}
+.logo{width:44px;height:44px;color:var(--brand);flex:none}
+.kiosk-main{flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px;padding-block:24px}
+.welcome h1{font-size:clamp(2rem,5vw,2.8rem)}
+.welcome p{font-size:1.15rem;max-width:34em}
+.code-row{display:flex;gap:12px;flex-wrap:wrap}
+.code-input{flex:1 1 220px;font-size:2rem;letter-spacing:.18em;text-transform:uppercase;font-family:var(--mono);
+  padding:.5rem 1rem;border:2px solid var(--line);border-radius:var(--radius);background:var(--surface);min-height:72px}
+.code-input:focus{border-color:var(--accent);outline:none}
+.big{font-size:1.25rem;padding:.9rem 1.6rem;min-height:72px;border-radius:var(--radius)}
+.msg{min-height:1.6em;color:var(--crit-ink);font-weight:700}
+
+.progress{display:flex;gap:4px}
+.progress i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.progress i.done{background:var(--accent)}
+.progress i.gap{flex:0 0 10px;background:transparent}
+.q-meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.q-stem{font-size:1.05rem;color:var(--ink-2)}
+.q-text{font-size:clamp(1.55rem,3.6vw,2.15rem);font-weight:700;max-width:30em}
+.answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:560px){.answers{grid-template-columns:1fr}}
+.answer{display:flex;align-items:center;gap:14px;text-align:left;padding:1rem 1.1rem;min-height:84px;border-radius:var(--radius);
+  border:2px solid var(--line);background:var(--surface);font-size:1.2rem;transition:border-color .12s,background .12s}
+.answer:hover{border-color:var(--ink-3)}
+.answer .dot{flex:0 0 26px;height:26px;border-radius:50%;border:2px solid var(--ink-3);display:grid;place-items:center}
+.answer[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.answer[aria-pressed="true"] .dot{border-color:var(--accent);background:var(--accent)}
+.answer[aria-pressed="true"] .dot::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--accent-ink)}
+.q-nav{display:flex;justify-content:space-between;gap:12px}
+.thanks{text-align:center;align-items:center}
+.thanks .check{width:88px;height:88px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center}
+.thanks h1{font-size:clamp(2rem,5vw,2.6rem)}
+.thanks p{font-size:1.2rem;max-width:30em;margin:0}
+
+/* ---------- Praxisbereich ---------- */
+.praxis{max-width:1180px;margin:0 auto;padding-block:16px 40px;display:flex;flex-direction:column;gap:16px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.bar h1{font-size:1.35rem}
+.tabs{display:flex;gap:4px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:4px}
+.tabs button{border:0;background:transparent;border-radius:8px;padding:.45rem .9rem;min-height:40px;color:var(--ink-2)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+.side{display:flex;flex-direction:column}
+.side-head{padding:14px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line)}
+.add-row{display:flex;gap:8px}
+.add-row input{flex:1;min-width:0;text-transform:uppercase;font-family:var(--mono)}
+.clist{list-style:none;margin:0;padding:6px;max-height:70vh;overflow:auto}
+.clist button{width:100%;border:0;background:transparent;text-align:left;border-radius:10px;padding:10px;display:grid;
+  grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.clist button:hover{background:var(--surface-2)}
+.clist button[aria-current="true"]{background:var(--accent-soft)}
+.clist .code{font-family:var(--mono);font-weight:500;font-size:1.05rem}
+.clist .sub{grid-column:1/-1;font-size:.82rem;color:var(--ink-3);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.empty{padding:24px;color:var(--ink-2)}
+.detail{padding:20px;display:flex;flex-direction:column;gap:22px}
+.detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.detail-head h2{font-family:var(--mono);font-weight:500;font-size:1.9rem;letter-spacing:.06em}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.stat{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.stat .v{font-family:var(--mono);font-size:1.9rem;line-height:1.1}
+.stat .v small{font-size:.9rem;color:var(--ink-3)}
+.stat .d{font-size:.85rem;color:var(--ink-2)}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:1px 9px;font-size:.8rem;font-weight:700;white-space:nowrap}
+.sev0{background:var(--ok-bg);color:var(--ok-ink)}
+.sev1{background:var(--ok-bg);color:var(--ok-ink)}
+.sev2{background:var(--warn-bg);color:var(--warn-ink)}
+.sev3{background:var(--serious-bg);color:var(--serious-ink)}
+.sev4{background:var(--crit-bg);color:var(--crit-ink)}
+.flag{background:var(--crit-bg);color:var(--crit-ink)}
+.flag::before{content:"!";display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;background:var(--crit);color:#fff;font-size:.7rem}
+.alert{border:1px solid var(--crit);background:var(--crit-bg);color:var(--crit-ink);border-radius:12px;padding:12px 14px}
+.demo-note{background:var(--warn-bg);color:var(--warn-ink);border-radius:12px;padding:10px 14px;font-size:.9rem}
+.charts{display:grid;grid-template-columns:1fr;gap:28px}
+.chart h3{font-size:1.2rem;display:flex;align-items:center;gap:8px}
+.chart h3 .sw{width:14px;height:3px;border-radius:2px}
+.chart p{margin:2px 0 6px;font-size:.85rem;color:var(--ink-3)}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.chart svg text{fill:var(--ink-2);font-family:var(--font);font-size:14px}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .band-label{fill:var(--ink-2);font-size:13px}
+.chart .hit{fill:transparent;cursor:pointer}
+.tip{position:fixed;z-index:10;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:8px 10px;font-size:.85rem;box-shadow:0 6px 20px rgba(0,0,0,.14);max-width:240px}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2)}
+tr:last-child td{border-bottom:0}
+td.items{font-family:var(--mono);font-size:.82rem;color:var(--ink-2)}
+.settings{padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.settings section{display:flex;flex-direction:column;gap:10px;border:1px solid var(--line);border-radius:12px;padding:16px}
+.settings h3{font-size:1.05rem}
+.settings p{margin:0;font-size:.92rem;color:var(--ink-2)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--ground);
+  padding:10px 16px;border-radius:10px;font-weight:700;z-index:20}
+.pin-card{max-width:380px;margin:12vh auto 0;padding:24px;display:flex;flex-direction:column;gap:14px}
+.pin-card input{font-family:var(--mono);font-size:1.6rem;letter-spacing:.3em;text-align:center}
+.show{max-width:1100px;margin:0 auto;padding-block:20px 40px;display:flex;flex-direction:column;gap:28px}
+.show .chart h3{font-size:clamp(1.4rem,3vw,1.9rem)}
+.show .chart p{font-size:1rem}
+.show .chart svg text{font-size:15px}
+.show .chart .band-label{font-size:14px}
+.show-now{display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;font-size:1.1rem}
+.show-now .num{font-size:2rem;color:var(--ink)}
+.show .chip{font-size:1rem;padding:2px 12px}
+.pe{padding:20px;display:flex;flex-direction:column;gap:20px}
+.pe-top{display:flex;gap:16px;flex-wrap:wrap;align-items:end}
+.pe-top label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--ink-2)}
+.pe-sec{display:flex;flex-direction:column;gap:2px}
+.pe-sec h3{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:1.1rem;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.pe-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.pe-row .n{font-family:var(--mono);color:var(--ink-3)}
+.pe-row .t{font-size:.95rem}
+.seg{display:flex;gap:4px}
+.seg button{width:48px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-family:var(--mono);font-size:1.05rem}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.pe-row.missing{background:var(--crit-bg);border-radius:8px}
+.pe-row.missing .n{color:var(--crit-ink);font-weight:700}
+@media (max-width:560px){.pe-row{grid-template-columns:24px minmax(0,1fr)}.pe-row .seg{grid-column:2}}
+.legend-scale{font-size:.85rem;color:var(--ink-2)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<div id="app"></div>
+<div id="tip" class="tip" hidden></div>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+(() => {
+"use strict";
+/* ================= Inhalte ================= */
+const OPTIONS = ["Überhaupt nicht","An einzelnen Tagen","An mehr als der Hälfte der Tage","Beinahe jeden Tag"];
+const STEM = "Wie oft fühlten Sie sich im Verlauf der letzten 2 Wochen durch die folgenden Beschwerden beeinträchtigt?";
+const PHQ = [
+  "Wenig Interesse oder Freude an Ihren Tätigkeiten",
+  "Niedergeschlagenheit, Schwermut oder Hoffnungslosigkeit",
+  "Schwierigkeiten, ein- oder durchzuschlafen, oder vermehrter Schlaf",
+  "Müdigkeit oder Gefühl, keine Energie zu haben",
+  "Verminderter Appetit oder übermäßiges Bedürfnis zu essen",
+  "Schlechte Meinung von sich selbst; Gefühl, ein Versager zu sein oder die Familie enttäuscht zu haben",
+  "Schwierigkeiten, sich auf etwas zu konzentrieren, z. B. beim Zeitunglesen oder Fernsehen",
+  "Waren Ihre Bewegungen oder Ihre Sprache so verlangsamt, dass es auch anderen auffallen würde? Oder waren Sie im Gegenteil „zappelig“ oder ruhelos und hatten dadurch einen stärkeren Bewegungsdrang als sonst?",
+  "Gedanken, dass Sie lieber tot wären oder sich Leid zufügen möchten"
+];
+const GAD = [
+  "Nervosität, Ängstlichkeit oder Anspannung",
+  "Nicht in der Lage sein, Sorgen zu stoppen oder zu kontrollieren",
+  "Übermäßige Sorgen bezüglich verschiedener Angelegenheiten",
+  "Schwierigkeiten zu entspannen",
+  "Rastlosigkeit, sodass Stillsitzen schwerfällt",
+  "Schnelle Verärgerung oder Gereiztheit",
+  "Gefühl der Angst, so als würde etwas Schlimmes passieren"
+];
+const SEV = {
+  phq:{max:27,bands:[[0,4,"minimal"],[5,9,"leicht"],[10,14,"mittelgradig"],[15,19,"mittelschwer"],[20,27,"schwer"]]},
+  gad:{max:21,bands:[[0,4,"minimal"],[5,9,"leicht"],[10,14,"mittelgradig"],[15,21,"schwer"]]}
+};
+function sevIndex(kind,score){const b=SEV[kind].bands;for(let i=0;i<b.length;i++)if(score<=b[i][1])return i;return b.length-1}
+function sevChip(kind,score){
+  const i=sevIndex(kind,score), label=SEV[kind].bands[i][2];
+  const cls = kind==="gad" && i===3 ? "sev4" : "sev"+i;
+  return `<span class="chip ${cls}">${label}</span>`;
+}
+const sum = a => a.reduce((s,x)=>s+x,0);
+
+/* ================= Speicher ================= */
+const KEY="phqgad.v1";
+let store={clients:{},entries:[],pinHash:null,demo:false};
+let storageOk=true;
+function load(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw){store=Object.assign(store,JSON.parse(raw));}
+    else{seedDemo();save();}
+  }catch(e){storageOk=false;seedDemo();}
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(store));storageOk=true;return true}
+  catch(e){storageOk=false;toast("Speichern nicht möglich – Browser-Speicher blockiert");return false}
+}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+
+function seedDemo(){
+  const now=Date.now(), day=864e5;
+  const phq=[[2,3,2,2,1,2,2,1,1],[2,2,2,2,1,1,2,1,0],[1,2,2,1,1,1,1,0,0],[1,1,1,1,1,1,1,0,0],[1,1,1,1,0,0,1,0,0],[0,1,1,1,0,0,1,0,0]];
+  const gad=[[3,2,3,2,2,2,2],[2,2,2,2,2,2,1],[2,2,2,1,1,1,1],[1,1,2,1,1,1,1],[1,1,1,1,0,1,0],[1,0,1,1,0,1,0]];
+  store.clients={DEMO:{created:now-60*day}};
+  store.entries=phq.map((p,i)=>({id:"demo"+i,code:"DEMO",ts:now-(5-i)*14*day,phq:p,gad:gad[i]}));
+  store.demo=true;
+}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const fmtDate=ts=>new Date(ts).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
+const fmtShort=ts=>new Date(ts).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});
+const fmtTime=ts=>new Date(ts).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const normCode=s=>s.toUpperCase().replace(/[^A-Z0-9ÄÖÜ-]/g,"").slice(0,12);
+
+async function hash(pin){
+  const txt="phqgad:"+pin;
+  try{
+    const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(txt));
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+  }catch(e){let h=5381;for(const c of txt)h=(h*33)^c.charCodeAt(0);return "d"+(h>>>0).toString(16)}
+}
+
+/* ================= Zustand ================= */
+const app=document.getElementById("app");
+let view="start";          // start | quiz | thanks | pin | praxis
+let quiz=null;             // {code, step, answers:{phq:[],gad:[]}}
+let pinFrom="start";
+let praxisTab="clients", selected=null, idleTimer=null, thanksTimer=null;
+
+const STEPS=[...PHQ.map((t,i)=>({k:"phq",i,t})),...GAD.map((t,i)=>({k:"gad",i,t}))];
+
+function toast(t){const el=document.getElementById("toast");el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2600)}
+function resetIdle(){
+  clearTimeout(idleTimer);
+  if(view==="quiz"||view==="pin") idleTimer=setTimeout(()=>{quiz=null;pinFrom="start";go("start")},5*60*1000);
+}
+document.addEventListener("pointerdown",resetIdle);
+function go(v){view=v;hideTip();render();resetIdle();window.scrollTo(0,0)}
+
+function render(){
+  clearTimeout(thanksTimer);
+  if(view==="start") return renderStart();
+  if(view==="quiz") return renderQuiz();
+  if(view==="thanks") return renderThanks();
+  if(view==="pin") return renderPin();
+  if(view==="praxis") return renderPraxis();
+  if(view==="show") return renderShow();
+}
+
+/* ================= Vollbild ================= */
+const isApp=()=>matchMedia("(display-mode: fullscreen)").matches||matchMedia("(display-mode: standalone)").matches;
+const fsOk=()=>{try{return !isApp()&&!!(document.fullscreenEnabled&&document.documentElement.requestFullscreen)}catch(e){return false}};
+async function toggleFs(){
+  try{
+    if(document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen({navigationUI:"hide"});
+  }catch(e){toast("Vollbild wird hier nicht unterstützt")}
+}
+document.addEventListener("fullscreenchange",()=>{if(view==="start")render()});
+
+/* ================= Klientenansicht ================= */
+const brand=`<div class="brand"><svg class="logo" viewBox="0 0 512 512" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"><circle cx="256" cy="256" r="247"/><path d="M101 153V262q0 14 14 14H205q14 0 14 14V436"/><path d="M411 153V262q0 14-14 14H307q-14 0-14 14V436"/><path d="M256 168V436"/></svg>Gebauer</div>`;
+function renderStart(){
+  app.innerHTML=`<div class="kiosk">
+    <div class="kiosk-top">${brand}<div class="row"><button class="btn ghost" id="fsBtn" ${fsOk()?"":"hidden"}>${document.fullscreenElement?"Vollbild beenden":"Vollbild"}</button><button class="btn ghost" id="toPraxis">Praxis</button></div></div>
+    <main class="kiosk-main welcome">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <h1>Willkommen</h1>
+        <p class="muted">Bitte geben Sie Ihr persönliches Kürzel ein. Sie beantworten danach 16 kurze Fragen zu Ihrem Befinden in den letzten zwei Wochen. Das dauert etwa 3 Minuten.</p>
+      </div>
+      <form id="codeForm" class="code-row" autocomplete="off">
+        <input id="codeInput" class="code-input" aria-label="Ihr Kürzel" placeholder="KÜRZEL" maxlength="12" autocapitalize="characters" spellcheck="false">
+        <button class="btn primary big" type="submit">Beginnen</button>
+      </form>
+      <div class="msg" id="codeMsg" role="alert"></div>
+    </main>
+  </div>`;
+  const inp=document.getElementById("codeInput");
+  inp.addEventListener("input",()=>{const p=inp.selectionStart;inp.value=normCode(inp.value);inp.setSelectionRange(p,p);document.getElementById("codeMsg").textContent=""});
+  document.getElementById("codeForm").onsubmit=e=>{
+    e.preventDefault();
+    const code=normCode(inp.value);
+    const m=document.getElementById("codeMsg");
+    if(!code){m.textContent="Bitte geben Sie Ihr Kürzel ein.";return}
+    if(!store.clients[code]){m.textContent="Dieses Kürzel ist nicht bekannt. Bitte prüfen Sie die Eingabe oder fragen Sie in der Praxis nach.";return}
+    quiz={code,step:0,answers:{phq:Array(9).fill(null),gad:Array(7).fill(null)}};
+    go("quiz");
+  };
+  document.getElementById("toPraxis").onclick=()=>go("pin");
+  document.getElementById("fsBtn").onclick=toggleFs;
+}
+
+function renderQuiz(){
+  const s=STEPS[quiz.step];
+  const cur=quiz.answers[s.k][s.i];
+  const title=s.k==="phq"?"Teil 1 von 2":"Teil 2 von 2";
+  const n=s.k==="phq"?9:7;
+  let bars="";
+  STEPS.forEach((x,j)=>{ if(j===9) bars+=`<i class="gap"></i>`; bars+=`<i class="${quiz.answers[x.k][x.i]!==null?"done":""}"></i>`; });
+  app.innerHTML=`<div class="kiosk">
+    <div class="kiosk-top">${brand}<button class="btn ghost" id="cancel">Abbrechen</button></div>
+    <main class="kiosk-main" style="justify-content:flex-start;gap:22px">
+      <div class="progress" aria-hidden="true">${bars}</div>
+      <div class="q-meta"><span class="eyebrow">${title}</span><span class="eyebrow">Frage ${s.i+1} von ${n}</span></div>
+      <p class="q-stem" style="margin:0">${STEM}</p>
+      <h1 class="q-text" id="qtext">${esc(s.t)}</h1>
+      <div class="answers" role="group" aria-labelledby="qtext">
+        ${OPTIONS.map((o,v)=>`<button class="answer" data-v="${v}" aria-pressed="${cur===v}"><span class="dot"></span>${o}</button>`).join("")}
+      </div>
+      <div class="q-nav">
+        <button class="btn big" id="back" ${quiz.step===0?"disabled":""}>Zurück</button>
+        <button class="btn primary big" id="next" ${cur===null?"disabled":""}>${quiz.step===STEPS.length-1?"Absenden":"Weiter"}</button>
+      </div>
+    </main></div>`;
+  app.querySelectorAll(".answer").forEach(b=>b.onclick=()=>{
+    quiz.answers[s.k][s.i]=+b.dataset.v;
+    app.querySelectorAll(".answer").forEach(x=>x.setAttribute("aria-pressed",x===b));
+    document.getElementById("next").disabled=false;
+    if(quiz.step<STEPS.length-1){const st=quiz.step;setTimeout(()=>{if(view==="quiz"&&quiz&&quiz.step===st){quiz.step++;render()}},320)}
+  });
+  document.getElementById("back").onclick=()=>{quiz.step--;render()};
+  document.getElementById("next").onclick=()=>{
+    if(quiz.step<STEPS.length-1){quiz.step++;render();return}
+    finish();
+  };
+  document.getElementById("cancel").onclick=()=>{quiz=null;go("start")};
+}
+function finish(){
+  const a=quiz.answers;
+  if(a.phq.includes(null)||a.gad.includes(null)){quiz.step=STEPS.findIndex(x=>a[x.k][x.i]===null);render();return}
+  store.entries.push({id:uid(),code:quiz.code,ts:Date.now(),phq:a.phq.slice(),gad:a.gad.slice()});
+  save();
+  quiz=null;go("thanks");
+}
+function renderThanks(){
+  app.innerHTML=`<div class="kiosk"><div class="kiosk-top">${brand}</div>
+    <main class="kiosk-main thanks">
+      <div class="check"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <h1>Vielen Dank!</h1>
+      <p class="muted">Ihre Antworten wurden gespeichert. Bitte geben Sie das Tablet jetzt zurück.</p>
+      <button class="btn primary big" id="done">Fertig</button>
+    </main></div>`;
+  document.getElementById("done").onclick=()=>go("start");
+  thanksTimer=setTimeout(()=>{if(view==="thanks")go("start")},20000);
+}
+
+/* ================= PIN ================= */
+function renderPin(){
+  const first=!store.pinHash;
+  app.innerHTML=`<div class="panel pin-card">
+    <span class="eyebrow">Praxisbereich</span>
+    <h2>${first?"PIN festlegen":"PIN eingeben"}</h2>
+    <p class="muted" style="margin:0">${first?"Legen Sie eine PIN mit mindestens 4 Ziffern fest. Sie schützt die Auswertungen vor Klienten.":"Nur für das Praxisteam."}</p>
+    <form id="pinForm" style="display:flex;flex-direction:column;gap:10px" autocomplete="off">
+      <input id="pin1" class="field" type="password" inputmode="numeric" aria-label="PIN" placeholder="••••">
+      ${first?`<input id="pin2" class="field" type="password" inputmode="numeric" aria-label="PIN wiederholen" placeholder="wiederholen">`:""}
+      <div class="msg" id="pinMsg" role="alert"></div>
+      <div class="row" style="justify-content:space-between"><button type="button" class="btn ghost" id="pinBack">Zurück</button><button class="btn primary">${first?"Speichern":"Öffnen"}</button></div>
+    </form></div>`;
+  const p1=document.getElementById("pin1");p1.focus();
+  document.getElementById("pinBack").onclick=()=>{const t=pinFrom;pinFrom="start";go(t)};
+  document.getElementById("pinForm").onsubmit=async e=>{
+    e.preventDefault();
+    const m=document.getElementById("pinMsg");
+    if(first){
+      const p2=document.getElementById("pin2").value;
+      if(!/^\d{4,}$/.test(p1.value)){m.textContent="Die PIN braucht mindestens 4 Ziffern.";return}
+      if(p1.value!==p2){m.textContent="Die beiden Eingaben stimmen nicht überein.";return}
+      store.pinHash=await hash(p1.value);save();toast("PIN gespeichert");go("praxis");
+    }else{
+      if(await hash(p1.value)===store.pinHash){pinFrom="start";go("praxis")}
+      else{m.textContent="PIN falsch. Bitte erneut versuchen.";p1.value="";p1.focus()}
+    }
+  };
+}
+
+/* ================= Praxis ================= */
+function clientStats(code){
+  const es=store.entries.filter(e=>e.code===code).sort((a,b)=>a.ts-b.ts);
+  return {es,last:es[es.length-1]};
+}
+function renderPraxis(){
+  app.innerHTML=`<div class="praxis">
+    <div class="bar">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><h1>Auswertung</h1>
+        <div class="tabs" role="tablist">
+          <button role="tab" data-t="clients" aria-selected="${praxisTab==="clients"}">Klienten</button>
+          <button role="tab" data-t="settings" aria-selected="${praxisTab==="settings"}">Daten &amp; Einstellungen</button>
+        </div></div>
+      <button class="btn primary" id="lock">Zum Klientenmodus</button>
+    </div>
+    ${storageOk?"":`<div class="alert">Der Browser erlaubt hier keinen dauerhaften Speicher. Neue Antworten gehen beim Schließen verloren.</div>`}
+    <div id="body"></div></div>`;
+  app.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{praxisTab=b.dataset.t;renderPraxis()});
+  document.getElementById("lock").onclick=()=>{selected=null;go("start")};
+  if(praxisTab==="clients")renderClients();else renderSettings();
+}
+
+function renderClients(){
+  const body=document.getElementById("body");
+  const codes=Object.keys(store.clients).sort();
+  if(!selected||!store.clients[selected]) selected=codes[0]||null;
+  const items=codes.map(c=>{
+    const {es,last}=clientStats(c);
+    const flag=es.some(e=>e.phq[8]>0);
+    const sub=last?`<span>${fmtDate(last.ts)}</span><span class="num">PHQ ${sum(last.phq)} · GAD ${sum(last.gad)}</span>${last.phq[8]>0?'<span class="chip flag">Item 9</span>':""}`:"<span>noch keine Antworten</span>";
+    return `<li><button data-c="${esc(c)}" aria-current="${c===selected}"><span class="code">${esc(c)}</span><span class="num muted" style="font-size:.85rem">${es.length}×</span><span class="sub">${sub}</span></button></li>`;
+  }).join("");
+  body.innerHTML=`<div class="layout">
+    <aside class="panel side">
+      <div class="side-head">
+        <span class="eyebrow">Klienten (${codes.length})</span>
+        <form class="add-row" id="addForm" autocomplete="off">
+          <input class="field" id="newCode" placeholder="Neues Kürzel" aria-label="Neues Kürzel" maxlength="12" spellcheck="false">
+          <button class="btn primary">Anlegen</button>
+        </form>
+      </div>
+      ${codes.length?`<ul class="clist">${items}</ul>`:`<div class="empty">Noch keine Klienten. Legen Sie oben ein Kürzel an.</div>`}
+    </aside>
+    <section class="panel" id="detail"></section></div>`;
+  const nc=document.getElementById("newCode");
+  nc.oninput=()=>nc.value=normCode(nc.value);
+  document.getElementById("addForm").onsubmit=e=>{
+    e.preventDefault();const c=normCode(nc.value);
+    if(!c)return;
+    if(store.clients[c]){toast("Kürzel "+c+" existiert bereits");return}
+    store.clients[c]={created:Date.now()};save();selected=c;toast("Kürzel "+c+" angelegt");renderClients();
+  };
+  body.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{selected=b.dataset.c;renderClients()});
+  renderDetail();
+}
+
+function renderDetail(){
+  const el=document.getElementById("detail");
+  if(!selected){el.innerHTML=`<div class="empty">Wählen Sie links einen Klienten aus.</div>`;return}
+  const {es,last}=clientStats(selected);
+  const first=es[0];
+  const flagged=es.filter(e=>e.phq[8]>0);
+  const delta=(k)=>{ if(es.length<2)return ""; const d=sum(last[k])-sum(first[k]); return `${d>0?"+":d<0?"−":"±"}${Math.abs(d)} seit ${fmtDate(first.ts)}`;};
+  el.innerHTML=`<div class="detail">
+    <div class="detail-head">
+      <div><span class="eyebrow">Klient</span><h2>${esc(selected)}</h2></div>
+      <div class="row"><button class="btn" id="addPaper">Papierbogen nachtragen</button>${last?`<button class="btn primary" id="showClient">Verlauf zeigen</button>`:""}<button class="btn danger" id="delClient">Klient löschen</button></div>
+    </div>
+    ${selected==="DEMO"?`<div class="demo-note">Beispieldaten zur Ansicht. Löschen Sie „DEMO“, sobald Sie eigene Klienten anlegen.</div>`:""}
+    ${last&&last.phq[8]>0?`<div class="alert"><strong>Achtung:</strong> Bei der letzten Befragung (${fmtDate(last.ts)}) wurde PHQ-9 Frage 9 (Suizidgedanken) mit „${OPTIONS[last.phq[8]]}“ beantwortet. Bitte zeitnah ansprechen.</div>`
+      :flagged.length?`<div class="alert" style="background:transparent">PHQ-9 Frage 9 war früher positiv: ${flagged.map(e=>fmtDate(e.ts)).join(", ")}.</div>`:""}
+    ${!last?`<div class="empty" style="padding:0">Für dieses Kürzel liegen noch keine Antworten vor. Geben Sie das Tablet im Klientenmodus weiter; der Klient meldet sich mit <span class="num">${esc(selected)}</span> an.</div>`:`
+    <div class="summary">
+      <div class="stat"><span class="eyebrow">PHQ-9 · Depression</span><span class="v">${sum(last.phq)}<small> / 27</small></span><span>${sevChip("phq",sum(last.phq))}</span><span class="d">${fmtDate(last.ts)}${es.length>1?" · "+delta("phq"):""}</span></div>
+      <div class="stat"><span class="eyebrow">GAD-7 · Angst</span><span class="v">${sum(last.gad)}<small> / 21</small></span><span>${sevChip("gad",sum(last.gad))}</span><span class="d">${fmtDate(last.ts)}${es.length>1?" · "+delta("gad"):""}</span></div>
+      <div class="stat"><span class="eyebrow">Befragungen</span><span class="v">${es.length}</span><span class="d">erste am ${fmtDate(first.ts)}</span></div>
+    </div>
+    <div class="charts">
+      <div class="chart"><h3><span class="sw" style="background:var(--s-phq)"></span>PHQ-9 im Verlauf</h3><p>Summenwert 0–27, Flächen = Schweregrade</p><div id="cPhq"></div></div>
+      <div class="chart"><h3><span class="sw" style="background:var(--s-gad)"></span>GAD-7 im Verlauf</h3><p>Summenwert 0–21, Flächen = Schweregrade</p><div id="cGad"></div></div>
+    </div>
+    <div>
+      <span class="eyebrow">Alle Befragungen</span>
+      <div class="table-wrap" style="margin-top:8px"><table>
+        <thead><tr><th>Datum</th><th>PHQ-9</th><th>Schweregrad</th><th>Fr. 9</th><th>GAD-7</th><th>Schweregrad</th><th>Einzelantworten PHQ | GAD</th><th></th></tr></thead>
+        <tbody>${es.slice().reverse().map(e=>`<tr>
+          <td>${fmtDate(e.ts)} ${e.src==="paper"?'<span class="chip sev0" style="background:var(--surface-2);color:var(--ink-2)">Papier</span>':`<span class="muted">${fmtTime(e.ts)}</span>`}</td>
+          <td class="num">${sum(e.phq)}</td><td>${sevChip("phq",sum(e.phq))}</td>
+          <td>${e.phq[8]>0?`<span class="chip flag">${e.phq[8]}</span>`:'<span class="num muted">0</span>'}</td>
+          <td class="num">${sum(e.gad)}</td><td>${sevChip("gad",sum(e.gad))}</td>
+          <td class="items">${e.phq.join(" ")} | ${e.gad.join(" ")}</td>
+          <td><button class="btn ghost danger" data-del="${e.id}" aria-label="Befragung vom ${fmtDate(e.ts)} löschen">Löschen</button></td></tr>`).join("")}</tbody>
+      </table></div>
+    </div>`}
+  </div>`;
+  if(last){
+    drawChart(document.getElementById("cPhq"),es,"phq","var(--s-phq)","PHQ-9");
+    drawChart(document.getElementById("cGad"),es,"gad","var(--s-gad)","GAD-7");
+  }
+  el.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+    if(b.dataset.armed){store.entries=store.entries.filter(e=>e.id!==b.dataset.del);save();toast("Befragung gelöscht");renderClients();return}
+    b.dataset.armed="1";b.textContent="Wirklich löschen?";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="Löschen"}},4000);
+  });
+  document.getElementById("addPaper").onclick=()=>renderPaper();
+  const sc=document.getElementById("showClient");if(sc)sc.onclick=()=>go("show");
+  const dc=document.getElementById("delClient");
+  dc.onclick=()=>{
+    if(dc.dataset.armed){
+      store.entries=store.entries.filter(e=>e.code!==selected);delete store.clients[selected];
+      if(selected==="DEMO")store.demo=false;
+      save();toast("Klient gelöscht");selected=null;renderClients();return;
+    }
+    dc.dataset.armed="1";dc.textContent=`${es.length} Befragung(en) mitlöschen?`;
+    setTimeout(()=>{if(dc.isConnected){delete dc.dataset.armed;dc.textContent="Klient löschen"}},4000);
+  };
+}
+
+/* ================= Papierbogen nachtragen ================= */
+function isoToday(){const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)}
+function renderPaper(){
+  const el=document.getElementById("detail");
+  const ans={phq:Array(9).fill(null),gad:Array(7).fill(null)};
+  const rows=(k,list)=>list.map((t,i)=>`<div class="pe-row" data-k="${k}" data-i="${i}"><span class="n">${i+1}</span><span class="t">${esc(t)}</span>
+    <div class="seg" role="group" aria-label="${k.toUpperCase()} Frage ${i+1}">${[0,1,2,3].map(v=>`<button type="button" data-v="${v}" aria-pressed="false">${v}</button>`).join("")}</div></div>`).join("");
+  el.innerHTML=`<form class="pe" id="peForm" autocomplete="off">
+    <div class="detail-head">
+      <div><span class="eyebrow">Papierbogen nachtragen</span><h2>${esc(selected)}</h2></div>
+      <button type="button" class="btn ghost" id="peCancel">Abbrechen</button>
+    </div>
+    <div class="pe-top">
+      <label for="peDate">Ausgefüllt am<input type="date" id="peDate" class="field" value="${isoToday()}" max="${isoToday()}" required></label>
+      <p class="legend-scale" style="margin:0">0 = überhaupt nicht · 1 = an einzelnen Tagen · 2 = an mehr als der Hälfte der Tage · 3 = beinahe jeden Tag</p>
+    </div>
+    <div class="pe-sec"><h3>PHQ-9 <span class="num muted" id="sumPhq">– / 27</span></h3>${rows("phq",PHQ)}</div>
+    <div class="pe-sec"><h3>GAD-7 <span class="num muted" id="sumGad">– / 21</span></h3>${rows("gad",GAD)}</div>
+    <div class="msg" id="peMsg" role="alert"></div>
+    <div class="row" style="justify-content:flex-end"><button type="button" class="btn" id="peCancel2">Abbrechen</button><button class="btn primary">Befragung speichern</button></div>
+  </form>`;
+  const upd=()=>{
+    ["phq","gad"].forEach(k=>{const done=!ans[k].includes(null);const v=sum(ans[k].map(x=>x||0));
+      document.getElementById(k==="phq"?"sumPhq":"sumGad").innerHTML=done?`${v} / ${SEV[k].max} ${sevChip(k,v)}`:`${ans[k].filter(x=>x!==null).length} von ${ans[k].length} beantwortet`;});
+  };
+  el.querySelectorAll(".pe-row").forEach(r=>r.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    ans[r.dataset.k][+r.dataset.i]=+b.dataset.v;r.classList.remove("missing");
+    r.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));upd();
+  }));
+  upd();
+  const back=()=>renderDetail();
+  document.getElementById("peCancel").onclick=back;document.getElementById("peCancel2").onclick=back;
+  document.getElementById("peForm").onsubmit=e=>{
+    e.preventDefault();
+    const m=document.getElementById("peMsg");
+    const dv=document.getElementById("peDate").value;
+    if(!dv){m.textContent="Bitte das Datum eintragen.";return}
+    if(dv>isoToday()){m.textContent="Das Datum darf nicht in der Zukunft liegen.";return}
+    let miss=0;
+    el.querySelectorAll(".pe-row").forEach(r=>{if(ans[r.dataset.k][+r.dataset.i]===null){r.classList.add("missing");miss++}});
+    if(miss){m.textContent=`Es fehlen noch ${miss} Antwort(en) – rot markiert.`;el.querySelector(".pe-row.missing").scrollIntoView({block:"center"});return}
+    const [Y,M,D]=dv.split("-").map(Number);
+    store.entries.push({id:uid(),code:selected,ts:new Date(Y,M-1,D,12,0).getTime(),phq:ans.phq,gad:ans.gad,src:"paper"});
+    save();toast(`Befragung vom ${fmtDate(new Date(Y,M-1,D))} gespeichert`);renderClients();
+  };
+}
+
+/* ================= Ansicht für Klienten ================= */
+function renderShow(){
+  const {es,last}=clientStats(selected);
+  if(!last){go("praxis");return}
+  const lp=sum(last.phq), lg=sum(last.gad);
+  app.innerHTML=`<div class="show">
+    <div class="bar">
+      <div><span class="eyebrow">Ihr Verlauf · ${esc(selected)}</span><h1 style="font-size:clamp(1.6rem,4vw,2.4rem)">So hat sich Ihr Befinden entwickelt</h1></div>
+      <button class="btn big" id="showBack">Zurück zur Praxis</button>
+    </div>
+    <div class="chart"><h3><span class="sw" style="background:var(--s-phq)"></span>Stimmung (PHQ-9)</h3>
+      <div class="show-now muted">Zuletzt am ${fmtDate(last.ts)}: <span class="num">${lp}</span> von 27 ${sevChip("phq",lp)}</div>
+      <div id="sPhq"></div></div>
+    <div class="chart"><h3><span class="sw" style="background:var(--s-gad)"></span>Angst und Anspannung (GAD-7)</h3>
+      <div class="show-now muted">Zuletzt am ${fmtDate(last.ts)}: <span class="num">${lg}</span> von 21 ${sevChip("gad",lg)}</div>
+      <div id="sGad"></div></div>
+    <p class="muted" style="margin:0">Niedrigere Werte bedeuten weniger Beschwerden.</p>
+  </div>`;
+  drawChart(document.getElementById("sPhq"),es,"phq","var(--s-phq)","PHQ-9",{big:true,clean:true});
+  drawChart(document.getElementById("sGad"),es,"gad","var(--s-gad)","GAD-7",{big:true,clean:true});
+  document.getElementById("showBack").onclick=()=>{pinFrom="show";go("pin")};
+}
+
+/* ================= Diagramm ================= */
+function drawChart(host,es,k,color,name,opt={}){
+  const {max,bands}=SEV[k];
+  const W=900,H=opt.big?380:320,L=40,R=112,T=14,B=36;
+  const pw=W-L-R, ph=H-T-B;
+  const y=v=>T+ph-(v/max)*ph;
+  const n=es.length;
+  const x=i=>n===1?L+pw/2:L+ (i/(n-1))*pw;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${name} Verlauf, ${n} Messungen">`;
+  bands.forEach((b,i)=>{
+    const top=i===bands.length-1?max:b[1]+.5, bot=i===0?0:b[0]-.5;
+    s+=`<rect x="${L}" y="${y(top)}" width="${pw}" height="${y(bot)-y(top)}" fill="var(--band${Math.min(i+1,5)+(k==="gad"&&i===3?1:0)})"/>`;
+    s+=`<text class="band-label" x="${L+pw+8}" y="${(y(top)+y(bot))/2+3.5}">${b[2]}</text>`;
+  });
+  const ticks=[0,...bands.slice(1).map(b=>b[0]),max];
+  ticks.forEach(t=>{s+=`<line class="grid" x1="${L}" x2="${L+pw}" y1="${y(t)}" y2="${y(t)}" stroke-dasharray="${t===0?"":"2 4"}"/><text x="${L-8}" y="${y(t)+4}" text-anchor="end">${t}</text>`});
+  const every=Math.ceil(n/7);
+  es.forEach((e,i)=>{ if(i%every===0||i===n-1) s+=`<text x="${x(i)}" y="${H-10}" text-anchor="middle">${fmtShort(e.ts)}</text>`; });
+  const pts=es.map((e,i)=>[x(i),y(sum(e[k]))]);
+  if(n>1) s+=`<path d="${pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join("")}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+  pts.forEach((p,i)=>{
+    const lastPt=i===n-1;
+    s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${lastPt?7:5}" fill="${lastPt?color:"var(--surface)"}" stroke="${lastPt?"var(--surface)":color}" stroke-width="2"/>`;
+    if(!opt.clean&&k==="phq"&&es[i].phq[8]>0) s+=`<circle cx="${p[0]}" cy="${p[1]}" r="11" fill="none" stroke="var(--crit)" stroke-width="1.5" stroke-dasharray="3 2"/>`;
+  });
+  const lv=sum(es[n-1][k]);
+  const lp=pts[n-1];
+  s+=`<text x="${lp[0]}" y="${lp[1]-14}" text-anchor="${n===1?"middle":"end"}" style="fill:var(--ink);font-weight:700;font-size:17px">${lv}</text>`;
+  const hw=n>1?pw/(n-1):pw;
+  pts.forEach((p,i)=>{s+=`<rect class="hit" data-i="${i}" x="${p[0]-hw/2}" y="${T}" width="${hw}" height="${ph}" fill="transparent"/>`});
+  s+=`</svg>`;
+  host.innerHTML=s;
+  host.querySelectorAll(".hit").forEach(r=>{
+    const show=ev=>{
+      const e=es[+r.dataset.i], v=sum(e[k]);
+      showTip(ev,`<strong>${fmtDate(e.ts)}</strong><br>${name}: <span class="num">${v}</span> ${sevChip(k,v)}${!opt.clean&&k==="phq"&&e.phq[8]>0?`<br><span class="chip flag">Frage 9: ${OPTIONS[e.phq[8]]}</span>`:""}`);
+    };
+    r.addEventListener("pointerenter",show);r.addEventListener("pointermove",show);r.addEventListener("pointerdown",show);
+    r.addEventListener("pointerleave",hideTip);
+  });
+}
+const tip=document.getElementById("tip");
+function showTip(ev,html){
+  tip.innerHTML=html;tip.hidden=false;
+  const w=tip.offsetWidth,h=tip.offsetHeight;
+  let lx=ev.clientX+14, ly=ev.clientY-h-12;
+  if(lx+w>innerWidth-8)lx=ev.clientX-w-14;
+  if(ly<8)ly=ev.clientY+16;
+  tip.style.left=Math.max(8,lx)+"px";tip.style.top=ly+"px";
+}
+function hideTip(){tip.hidden=true}
+document.addEventListener("scroll",hideTip,{passive:true});
+
+/* ================= Einstellungen / Export ================= */
+const downloads={save:async({filename,data})=>{
+  const type=filename.endsWith(".csv")?"text/csv;charset=utf-8":"application/json";
+  const url=URL.createObjectURL(new Blob([data],{type}));
+  const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);return {status:"saved"};
+}};
+
+function csv(){
+  const head=["Kuerzel","Datum","Uhrzeit",...PHQ.map((_,i)=>"PHQ"+(i+1)),"PHQ9_Summe","PHQ9_Schweregrad",...GAD.map((_,i)=>"GAD"+(i+1)),"GAD7_Summe","GAD7_Schweregrad"];
+  const rows=store.entries.slice().sort((a,b)=>a.code.localeCompare(b.code)||a.ts-b.ts).map(e=>[
+    e.code,fmtDate(e.ts),fmtTime(e.ts),...e.phq,sum(e.phq),SEV.phq.bands[sevIndex("phq",sum(e.phq))][2],...e.gad,sum(e.gad),SEV.gad.bands[sevIndex("gad",sum(e.gad))][2]]);
+  return "﻿"+[head,...rows].map(r=>r.join(";")).join("\r\n");
+}
+async function offer(filename,data){
+  if(!downloads){toast("Download ist in dieser Ansicht nicht verfügbar – Text unten kopieren");return}
+  try{await downloads.save({filename,data});toast("Datei im Download-Ordner gespeichert")}
+  catch(err){ if(err&&err.code==="declined")return; toast("Speichern nicht möglich: "+(err&&err.message||"unbekannt")) }
+}
+function stamp(){const d=new Date();return d.toISOString().slice(0,10)}
+
+function renderSettings(){
+  const body=document.getElementById("body");
+  const nC=Object.keys(store.clients).length, nE=store.entries.length;
+  body.innerHTML=`<div class="panel settings">
+    <section>
+      <h3>Datensicherung</h3>
+      <p>Alle Daten liegen nur in diesem Browser auf diesem Tablet (${nC} Klienten, ${nE} Befragungen). Wird der Browserspeicher gelöscht, sind sie weg – sichern Sie regelmäßig.</p>
+      <div class="row">
+        <button class="btn primary" id="expJson" ${downloads?"":"hidden"}>Sicherung speichern (.json)</button>
+        <button class="btn" id="expCsv" ${downloads?"":"hidden"}>Tabelle für Excel (.csv)</button>
+      </div>
+      <details ${downloads?"":"open"}><summary class="muted" style="cursor:pointer">Sicherung als Text kopieren</summary>
+        <textarea id="bkText" class="field" readonly style="width:100%;height:110px;margin-top:8px;font-family:var(--mono);font-size:.75rem"></textarea>
+        <button class="btn" id="copyBk" style="margin-top:6px">In Zwischenablage kopieren</button>
+      </details>
+    </section>
+    <section>
+      <h3>Sicherung wiederherstellen</h3>
+      <p>Lädt eine gespeicherte .json-Sicherung. Vorhandene Befragungen bleiben erhalten, doppelte werden übersprungen.</p>
+      <input type="file" id="impFile" accept=".json,application/json" class="field">
+      <details><summary class="muted" style="cursor:pointer">Oder Text einfügen</summary>
+        <textarea id="impText" class="field" style="width:100%;height:90px;margin-top:8px;font-family:var(--mono);font-size:.75rem"></textarea>
+        <button class="btn" id="impGo" style="margin-top:6px">Einfügen</button>
+      </details>
+    </section>
+    <section>
+      <h3>PIN ändern</h3>
+      <form id="pinChange" class="row" autocomplete="off">
+        <input class="field" id="pinOld" type="password" inputmode="numeric" placeholder="alte PIN" aria-label="Alte PIN" style="width:120px">
+        <input class="field" id="pinNew" type="password" inputmode="numeric" placeholder="neue PIN" aria-label="Neue PIN" style="width:120px">
+        <button class="btn">Ändern</button>
+      </form>
+    </section>
+    <section>
+      <h3>Auswertungsregeln</h3>
+      <p><strong>PHQ-9</strong> (0–27): 0–4 minimal · 5–9 leicht · 10–14 mittelgradig · 15–19 mittelschwer · 20–27 schwer. Frage 9 wird bei jedem Wert über 0 markiert.</p>
+      <p><strong>GAD-7</strong> (0–21): 0–4 minimal · 5–9 leicht · 10–14 mittelgradig · 15–21 schwer.</p>
+      <p>Die Werte sind Screening-Hinweise und ersetzen keine Diagnose.</p>
+    </section>
+  </div>`;
+  const bk=()=>JSON.stringify({app:"phqgad",version:1,exported:new Date().toISOString(),clients:store.clients,entries:store.entries},null,1);
+  document.getElementById("bkText").value=bk();
+  document.getElementById("expJson").onclick=()=>offer(`fragebogen-sicherung-${stamp()}.json`,bk());
+  document.getElementById("expCsv").onclick=()=>offer(`fragebogen-auswertung-${stamp()}.csv`,csv());
+  document.getElementById("copyBk").onclick=async()=>{
+    const ta=document.getElementById("bkText");
+    try{await navigator.clipboard.writeText(ta.value);toast("Kopiert")}catch(e){ta.select();toast("Text markiert – jetzt kopieren")}
+  };
+  const doImport=txt=>{
+    try{
+      const d=JSON.parse(txt);
+      if(!d||d.app!=="phqgad"||!Array.isArray(d.entries))throw 0;
+      const ids=new Set(store.entries.map(e=>e.id));let added=0;
+      Object.keys(d.clients||{}).forEach(c=>{if(!store.clients[c])store.clients[c]=d.clients[c]});
+      d.entries.forEach(e=>{
+        if(ids.has(e.id)||!Array.isArray(e.phq)||e.phq.length!==9||!Array.isArray(e.gad)||e.gad.length!==7)return;
+        if(!store.clients[e.code])store.clients[e.code]={created:e.ts};
+        store.entries.push(e);added++;
+      });
+      save();toast(`${added} Befragung(en) übernommen`);renderSettings();
+    }catch(e){toast("Das ist keine gültige Sicherungsdatei.")}
+  };
+  document.getElementById("impFile").onchange=ev=>{const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>doImport(r.result);r.readAsText(f)};
+  document.getElementById("impGo").onclick=()=>doImport(document.getElementById("impText").value);
+  document.getElementById("pinChange").onsubmit=async e=>{
+    e.preventDefault();
+    const o=document.getElementById("pinOld").value,nw=document.getElementById("pinNew").value;
+    if(await hash(o)!==store.pinHash){toast("Alte PIN stimmt nicht");return}
+    if(!/^\d{4,}$/.test(nw)){toast("Neue PIN: mindestens 4 Ziffern");return}
+    store.pinHash=await hash(nw);save();toast("PIN geändert");e.target.reset();
+  };
+}
+
+load();
+render();
+if("serviceWorker" in navigator&&location.protocol==="https:"){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+})();
+</script>
+
+</body>
+</html>
