@@ -336,7 +336,7 @@ const INSTR = {
     ]
   }  ,
   sbA:{
-    name:"Stimmung (A)", subtitle:"Selbstbeurteilung, nicht normiert", options:OPT_SBA, base:0, unvalidated:true,
+    name:"Depressionsinventar", subtitle:"Depression", options:OPT_SBA, base:0, unvalidated:true,
     stem:"Wie sehr trifft die Aussage auf die vergangenen 14 Tage zu, heute eingeschlossen?",
     items:[
       "Ich fühle mich niedergeschlagen und bedrückt.",
@@ -362,11 +362,11 @@ const INSTR = {
       "Mein Interesse an Sexualität hat nachgelassen."
     ],
     flag:{item:12,label:"Aussage 13",text:"Aussage 13 (Suizidgedanken)"},
-    scales:[{key:"sbA",name:"Stimmung (A)",axis:"Punktwert 0–63, keine Grenzwerte",min:0,max:63,better:"low",bands:null,
+    scales:[{key:"sbA",name:"Depressionsinventar",axis:"Summenwert 0–63",min:0,max:63,better:"low",bands:[[0,8,"keine Depression"],[9,14,"minimale Depression"],[15,19,"leichte Depression"],[20,29,"mittelgradige Depression"],[30,63,"schwere Depression"]],
       calc:a=>a.reduce((s,x)=>s+x,0)}]
   },
   sbB:{
-    name:"Angstgedanken (B)", subtitle:"Selbstbeurteilung, nicht normiert", options:OPT_SBB, base:1, unvalidated:true,
+    name:"Angstgedanken (B)", subtitle:"Angst", options:OPT_SBB, base:1, unvalidated:true,
     stem:"Wie häufig kommt Ihnen dieser Gedanke, wenn Sie angespannt oder ängstlich sind?",
     items:[
       "Gleich verliere ich die Kontrolle über mich.",
@@ -384,11 +384,11 @@ const INSTR = {
       "Ich fange gleich an, laut loszuschreien.",
       "Ich erleide gleich einen Schlaganfall."
     ],
-    scales:[{key:"sbB",name:"Angstgedanken (B)",axis:"Punktwert 14–70, keine Grenzwerte",min:14,max:70,better:"low",bands:null,
-      calc:a=>a.reduce((s,x)=>s+x,0)+a.length}]
+    scales:[{key:"sbB",name:"Angstgedanken (B)",axis:"Summenwert 0–56",min:0,max:56,better:"low",bands:[[0,8,"keine Angst"],[9,14,"minimale Angst"],[15,19,"leichte Angst"],[20,29,"mittelgradige Angst"],[30,56,"schwere Angst"]],
+      calc:a=>a.reduce((s,x)=>s+x,0)}]
   },
   sbC:{
-    name:"Körperempfindungen (C)", subtitle:"Selbstbeurteilung, nicht normiert", options:OPT_SBC, base:1, unvalidated:true,
+    name:"Körperempfindungen (C)", subtitle:"Angst", options:OPT_SBC, base:1, unvalidated:true,
     stem:"Wie stark beunruhigt oder ängstigt Sie diese Körperempfindung, wenn sie auftritt?",
     items:[
       "Schwindel oder Benommenheit",
@@ -409,8 +409,8 @@ const INSTR = {
       "Gefühl von Verwirrtheit oder Orientierungslosigkeit",
       "Gefühl, neben sich zu stehen oder den eigenen Körper als fremd zu erleben"
     ],
-    scales:[{key:"sbC",name:"Körperempfindungen (C)",axis:"Punktwert 17–85, keine Grenzwerte",min:17,max:85,better:"low",bands:null,
-      calc:a=>a.reduce((s,x)=>s+x,0)+a.length}]
+    scales:[{key:"sbC",name:"Körperempfindungen (C)",axis:"Summenwert 0–68",min:0,max:68,better:"low",bands:[[0,8,"keine Angst"],[9,14,"minimale Angst"],[15,19,"leichte Angst"],[20,29,"mittelgradige Angst"],[30,68,"schwere Angst"]],
+      calc:a=>a.reduce((s,x)=>s+x,0)}]
   }
 };
 const KEYS = Object.keys(INSTR);
@@ -837,7 +837,7 @@ function renderShow(){
         <div class="show-now muted">Zuletzt am ${fmtDate(l.ts)}: <span class="num">${v}</span> von ${sc.max} ${sevChip(sc,v)}</div>
         <div id="s-${sc.key}"></div></div>`;
     }).join("")}
-    ${scales.some(sc=>INSTR[sc.instr].unvalidated)?`<p class="muted" style="margin:0">Die Bögen A, B und C sind nicht normiert. Hier zählt der Vergleich mit Ihren eigenen früheren Werten.</p>`:""}
+    ${scales.some(sc=>INSTR[sc.instr].unvalidated)?`<p class="muted" style="margin:0">Beim Depressionsinventar sowie den Bögen B und C sind die Einstufungen praxisintern festgelegt. Hier zählt vor allem der Vergleich mit Ihren eigenen früheren Werten.</p>`:""}
     <p class="muted" style="margin:0">Bei WHO-5 bedeuten höhere Werte mehr Wohlbefinden, bei den übrigen Fragebögen bedeuten niedrigere Werte weniger Beschwerden.</p>
   </div>`;
   scales.forEach(sc=>drawChart(document.getElementById("s-"+sc.key),es,sc,{big:true,clean:true}));
@@ -972,7 +972,9 @@ function renderSettings(){
       <p><strong>WHO-5</strong> (0–100, Rohwert × 4): 51–100 unauffällig · 29–50 gering, weitere Abklärung sinnvoll · 0–28 sehr gering. Höhere Werte bedeuten mehr Wohlbefinden.</p>
       <p><strong>SSS-8</strong> (0–32): 0–3 keine bis minimal · 4–7 gering · 8–11 mittel · 12–15 hoch · 16–32 sehr hoch.</p>
       <p><strong>DASS-21</strong> (je 0–21): auffällig ab 10 (Depression), ab 6 (Angst), ab 10 (Stress).</p>
-      <p><strong>Stimmung (A)</strong> 0–63, <strong>Angstgedanken (B)</strong> 14–70, <strong>Körperempfindungen (C)</strong> 17–85: eigene, nicht validierte Fassungen ohne Normwerte und ohne Grenzwerte. Aussagekräftig ist nur der Vergleich derselben Person über die Zeit sowie einzelne Aussagen. Aussage 13 in Teil A (Suizidgedanken) wird wie PHQ-9 Frage 9 markiert.</p>
+      <p><strong>Depressionsinventar</strong> (0–63): 0–8 keine · 9–14 minimale · 15–19 leichte · 20–29 mittelgradige · ab 30 schwere Depression. Aussage 13 (Suizidgedanken) wird wie PHQ-9 Frage 9 markiert.</p>
+      <p><strong>Angstgedanken (B)</strong> (0–56) und <strong>Körperempfindungen (C)</strong> (0–68): 0–8 keine · 9–14 minimale · 15–19 leichte · 20–29 mittelgradige · ab 30 schwere Angst. Gezählt wird ab 0, die niedrigste Antwort („nie“ bzw. „macht mir keine Angst“) zählt 0 Punkte. Auf dem Papierbogen steht dafür eine 1, der Summenwert liegt daher um 14 (B) bzw. 17 (C) Punkte niedriger als beim Zusammenzählen auf Papier.</p>
+      <p class="muted" style="font-size:.85rem">Depressionsinventar sowie die Bögen B und C sind eigene, nicht validierte Fassungen. Die Einstufungen sind praxisintern festgelegt und beruhen nicht auf einer Normierungsstichprobe.</p>
       <p>Die Werte sind Screening-Hinweise und ersetzen keine Diagnose.</p>
       <p class="muted" style="font-size:.8rem">${INSTR.dass21.credit}</p>
     </section>
