@@ -115,21 +115,22 @@ h1,h2,h3{text-wrap:balance;margin:0;line-height:1.2}
 .tabs button{border:0;background:transparent;border-radius:8px;padding:.45rem .9rem;min-height:40px;color:var(--ink-2)}
 .tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px;align-items:start}
-@media (max-width:860px){.layout{grid-template-columns:1fr}}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+@media (max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);min-width:0}
 .side{display:flex;flex-direction:column}
 .side-head{padding:14px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line)}
 .add-row{display:flex;gap:8px}
 .add-row input{flex:1;min-width:0;text-transform:uppercase;font-family:var(--mono)}
 .clist{list-style:none;margin:0;padding:6px;max-height:70vh;overflow:auto}
-.clist button{width:100%;border:0;background:transparent;text-align:left;border-radius:10px;padding:10px;display:grid;
-  grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.clist button{width:100%;min-width:0;border:0;background:transparent;text-align:left;border-radius:10px;padding:10px;display:grid;
+  grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center}
+.clist .code{overflow-wrap:anywhere}
 .clist button:hover{background:var(--surface-2)}
 .clist button[aria-current="true"]{background:var(--accent-soft)}
 .clist .code{font-family:var(--mono);font-weight:500;font-size:1.05rem}
 .clist .sub{grid-column:1/-1;font-size:.82rem;color:var(--ink-3);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .empty{padding:24px;color:var(--ink-2)}
-.detail{padding:20px;display:flex;flex-direction:column;gap:22px}
+.detail{padding:20px;display:flex;flex-direction:column;gap:22px;min-width:0}
 .detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .detail-head h2{font-family:var(--mono);font-weight:500;font-size:1.9rem;letter-spacing:.06em}
 .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
@@ -148,7 +149,7 @@ h1,h2,h3{text-wrap:balance;margin:0;line-height:1.2}
 .flag::before{content:"!";display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;background:var(--crit);color:#fff;font-size:.7rem}
 .alert{border:1px solid var(--crit);background:var(--crit-bg);color:var(--crit-ink);border-radius:12px;padding:12px 14px}
 .demo-note{background:var(--warn-bg);color:var(--warn-ink);border-radius:12px;padding:10px 14px;font-size:.9rem}
-.charts{display:grid;grid-template-columns:1fr;gap:28px}
+.charts{display:grid;grid-template-columns:minmax(0,1fr);gap:28px}
 .chart h3{font-size:1.2rem;display:flex;align-items:center;gap:8px}
 .chart h3 .sw{width:14px;height:3px;border-radius:2px}
 .chart p{margin:2px 0 6px;font-size:.85rem;color:var(--ink-3)}
@@ -210,6 +211,19 @@ td.items{font-family:var(--mono);font-size:.82rem;color:var(--ink-2)}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--ink-2)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
+.fbm{display:flex;flex-direction:column;gap:14px}
+.fbm-grid{display:grid;grid-template-columns:minmax(150px,210px) minmax(180px,1fr) minmax(0,auto);gap:12px 14px;align-items:center}
+@media (max-width:640px){.fbm-grid{grid-template-columns:1fr}}
+.fbm-row{display:contents}
+.fbm-name{font-weight:700;font-size:.95rem}
+.fbm-name small{display:block;font-weight:400;color:var(--ink-3);font-size:.78rem}
+.mbar{position:relative;height:28px;border-radius:8px;background:var(--surface-2);overflow:hidden;min-width:180px}
+.mbar i{position:absolute;inset:0 auto 0 0;background:var(--s1);opacity:.85;border-radius:8px}
+.mbar b{position:absolute;top:0;bottom:0;width:3px;background:var(--ink-3)}
+.mbar span{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:.85rem;color:var(--ink)}
+.fbm-tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.krit{background:var(--warn-bg);color:var(--warn-ink)}
+.fbm-note{font-size:.85rem;color:var(--ink-2);margin:0}
 </style>
 
 </head>
@@ -229,6 +243,10 @@ const OPT_SBA = ["Trifft nicht zu","Trifft etwas zu","Trifft überwiegend zu","T
 const OPT_SBB = ["Nie","Selten","Manchmal (etwa in der Hälfte solcher Situationen)","Häufig","Fast immer"];
 const OPT_SBC = ["Macht mir keine Angst","Macht mir leichte Angst","Macht mir mäßige Angst","Macht mir starke Angst","Macht mir sehr starke Angst"];
 const OPT_DASS = ["Traf gar nicht auf mich zu","Traf bis zu einem gewissen Grad auf mich zu","Traf in beträchtlichem Maße auf mich zu","Traf sehr stark auf mich zu"];
+
+const OPT_FBM = ["Trifft gar nicht zu","Trifft kaum zu","Trifft teilweise zu","Trifft überwiegend zu","Trifft völlig zu"];
+const BANDS_G = [[0,11,"niedrig"],[12,16,"mittel"],[17,19,"erhöht"],[20,24,"auffällig"]];
+const BANDS_F = [[0,5,"unauffällig"],[6,8,"grenzwertig"],[9,12,"auffällig"]];
 
 /* ================= Fragebögen ================= */
 const INSTR = {
@@ -411,8 +429,78 @@ const INSTR = {
     ],
     scales:[{key:"sbC",name:"Körperempfindungen (C)",axis:"Summenwert 0–68",min:0,max:68,better:"low",bands:[[0,8,"keine Angst"],[9,14,"minimale Angst"],[15,19,"leichte Angst"],[20,29,"mittelgradige Angst"],[30,68,"schwere Angst"]],
       calc:a=>a.reduce((s,x)=>s+x,0)}]
+  }  ,
+  fbm36:{
+    name:"FBM-36", subtitle:"Beziehungsmotive", options:OPT_FBM, base:0, unvalidated:true, profile:"fbm",
+    stem:"Gemeint sind alle für Sie wichtigen Beziehungen, z. B. zu Partnerin oder Partner, Familie, Freundinnen und Freunden oder Kolleginnen und Kollegen. Wie geht es Ihnen im Allgemeinen?",
+    items:[
+      "Es ist mir sehr wichtig, dass Menschen, die mir nahestehen, mich mögen und schätzen.",
+      "Wenn andere etwas ohne mich planen oder unternehmen, fühle ich mich schnell übergangen.",
+      "Ich brauche die Gewissheit, dass eine Beziehung auch Streit und Meinungsverschiedenheiten aushält.",
+      "Ich habe oft den Eindruck, in schwierigen Situationen auf mich allein gestellt zu sein.",
+      "Es ist mir wichtig, dass andere meine persönlichen Bereiche (z. B. Zeit, Raum, Eigentum) respektieren.",
+      "Ich halte andere auf Abstand, um meine Unabhängigkeit nicht zu verlieren.",
+      "Ich möchte im Leben der Menschen, die mir wichtig sind, eine bedeutende Rolle spielen.",
+      "Ich brauche häufig die Bestätigung, dass mein Gegenüber bei mir bleibt.",
+      "Ob andere mir in schwierigen Situationen beistehen, ist mir nicht so wichtig.",
+      "Ich muss meine persönlichen Bereiche ständig verteidigen oder abschirmen.",
+      "Ich möchte, dass andere meine Entscheidungen respektieren, auch wenn sie sie nicht teilen.",
+      "Wenn ich kein Lob oder keine positive Rückmeldung bekomme, zweifle ich schnell an mir.",
+      "Es ist mir sehr wichtig, dass meine Beziehungen auf Dauer angelegt und stabil sind.",
+      "Wenn jemand in einem Konflikt nicht klar zu mir hält, erlebe ich das als Verrat.",
+      "Ich reagiere stark verärgert, wenn jemand ungefragt meine Sachen nutzt oder über meine Zeit verfügt.",
+      "Es ist für mich in Ordnung, wenn andere wichtige Entscheidungen für mich treffen.",
+      "Ich wünsche mir, dass andere meine guten Seiten und Fähigkeiten wahrnehmen.",
+      "Ich tue viel dafür, für andere unverzichtbar zu sein.",
+      "Mir ist wichtig, dass nahestehende Menschen mir helfen, wenn ich Unterstützung brauche.",
+      "Ich möchte Bereiche in meinem Leben haben, in denen nur ich bestimme.",
+      "Ratschläge oder Erwartungen anderer erlebe ich schnell als Bevormundung.",
+      "Ich strenge mich oft übermäßig an, damit andere ein gutes Bild von mir haben.",
+      "Es macht mir wenig aus, wenn ich für andere eher eine Nebenrolle spiele.",
+      "Schon kleine Anzeichen von Distanz (z. B. eine späte Antwort) beunruhigen mich stark.",
+      "Ich habe häufig das Gefühl, dass andere meine Grenzen überschreiten.",
+      "Es ist mir sehr wichtig, Entscheidungen über mein Leben selbst zu treffen.",
+      "Ob andere mich mögen, ist mir eher gleichgültig.",
+      "Ich zweifle häufig daran, ob ich den Menschen in meinem Umfeld überhaupt etwas bedeute.",
+      "Nach einem Streit habe ich schnell Angst, dass die Beziehung zu Ende sein könnte.",
+      "Ich wünsche mir, dass Freund:innen oder Partner:in zu mir halten, wenn ich angegriffen oder ungerecht behandelt werde.",
+      "In engen Beziehungen fühle ich mich leicht eingeengt oder kontrolliert.",
+      "Kritik trifft mich so sehr, dass sie mich noch lange beschäftigt.",
+      "Es ist mir wichtig, dass meine Meinung und meine Anwesenheit für andere einen Unterschied machen.",
+      "Ich komme gut damit zurecht, wenn offen ist, wie lange eine Beziehung hält.",
+      "Ich fühle mich schnell im Stich gelassen, wenn andere mir nicht sofort beistehen.",
+      "Es stört mich kaum, wenn sich andere in meine Angelegenheiten einmischen."
+    ],
+    scales:[
+      {key:"fbmG_anerk",name:"Anerkennung (G)",axis:"Gesamtwert 0–24",max:24,better:"low",hide:true,bands:BANDS_G,calc:a=>fbmG(a,"anerk")},
+      {key:"fbmF_anerk",name:"Anerkennung (F)",axis:"Frustration 0–12",max:12,better:"low",hide:true,bands:BANDS_F,calc:a=>fbmF(a,"anerk")},
+      {key:"fbmG_wicht",name:"Wichtigkeit (G)",axis:"Gesamtwert 0–24",max:24,better:"low",hide:true,bands:BANDS_G,calc:a=>fbmG(a,"wicht")},
+      {key:"fbmF_wicht",name:"Wichtigkeit (F)",axis:"Frustration 0–12",max:12,better:"low",hide:true,bands:BANDS_F,calc:a=>fbmF(a,"wicht")},
+      {key:"fbmG_verl",name:"Verlässlichkeit (G)",axis:"Gesamtwert 0–24",max:24,better:"low",hide:true,bands:BANDS_G,calc:a=>fbmG(a,"verl")},
+      {key:"fbmF_verl",name:"Verlässlichkeit (F)",axis:"Frustration 0–12",max:12,better:"low",hide:true,bands:BANDS_F,calc:a=>fbmF(a,"verl")},
+      {key:"fbmG_solid",name:"Solidarität (G)",axis:"Gesamtwert 0–24",max:24,better:"low",hide:true,bands:BANDS_G,calc:a=>fbmG(a,"solid")},
+      {key:"fbmF_solid",name:"Solidarität (F)",axis:"Frustration 0–12",max:12,better:"low",hide:true,bands:BANDS_F,calc:a=>fbmF(a,"solid")},
+      {key:"fbmG_grenz",name:"Grenzen (G)",axis:"Gesamtwert 0–24",max:24,better:"low",hide:true,bands:BANDS_G,calc:a=>fbmG(a,"grenz")},
+      {key:"fbmF_grenz",name:"Grenzen (F)",axis:"Frustration 0–12",max:12,better:"low",hide:true,bands:BANDS_F,calc:a=>fbmF(a,"grenz")},
+      {key:"fbmG_auton",name:"Autonomie (G)",axis:"Gesamtwert 0–24",max:24,better:"low",hide:true,bands:BANDS_G,calc:a=>fbmG(a,"auton")},
+      {key:"fbmF_auton",name:"Autonomie (F)",axis:"Frustration 0–12",max:12,better:"low",hide:true,bands:BANDS_F,calc:a=>fbmF(a,"auton")}
+    ]
   }
 };
+const FBM_INV=[26,22,33,8,35,15];
+const FBM_MOT=[
+      {key:"anerk",name:"Anerkennung",def:"von wichtigen Menschen gemocht, geschätzt und positiv gesehen werden",wish:[0,16,26],frust:[11,21,31]},
+      {key:"wicht",name:"Wichtigkeit",def:"im Leben anderer eine bedeutsame Rolle spielen",wish:[6,22,32],frust:[1,17,27]},
+      {key:"verl",name:"Verlässlichkeit",def:"sich auf stabile, belastbare Beziehungen verlassen können",wish:[2,12,33],frust:[7,23,28]},
+      {key:"solid",name:"Solidarität",def:"Hilfe, Beistand und Schutz erhalten, wenn man sie braucht",wish:[8,18,29],frust:[3,13,34]},
+      {key:"grenz",name:"Grenzen",def:"eigene Bereiche – Zeit, Raum, Dinge, Themen – geachtet wissen",wish:[4,19,35],frust:[9,14,24]},
+      {key:"auton",name:"Autonomie",def:"selbstbestimmt leben und in Entscheidungen respektiert werden",wish:[10,15,25],frust:[5,20,30]}
+];
+const fbmVal=(a,i)=>FBM_INV.includes(i)?4-a[i]:a[i];
+const fbmM=k=>FBM_MOT.find(m=>m.key===k);
+function fbmG(a,k){const m=fbmM(k);return m.wish.reduce((s,i)=>s+fbmVal(a,i),0)+m.frust.reduce((s,i)=>s+a[i],0)}
+function fbmF(a,k){return fbmM(k).frust.reduce((s,i)=>s+a[i],0)}
+
 const KEYS = Object.keys(INSTR);
 Object.values(INSTR).forEach(ins=>ins.scales.forEach(sc=>{ if(!sc.calc) sc.calc = a => sc.idx.reduce((s,i)=>s+a[i],0); if(sc.min==null) sc.min=0; }));
 const COLOR = {phq9:"var(--s1)",gad7:"var(--s2)",who5:"var(--s3)",sss8:"var(--s4)",dassD:"var(--s1)",dassA:"var(--s2)",dassS:"var(--s3)",sbA:"var(--s4)",sbB:"var(--s2)",sbC:"var(--s3)"};
@@ -645,7 +733,7 @@ function renderPin(){
 const entriesOf = code => store.entries.filter(e=>e.code===code).sort((a,b)=>a.ts-b.ts);
 function usedScales(es){
   const out=[];
-  KEYS.forEach(k=>scalesOf(k).forEach(sc=>{ if(es.some(e=>scoreOf(e,sc.key)!==null)) out.push(SCALE[sc.key]); }));
+  KEYS.forEach(k=>scalesOf(k).forEach(sc=>{ if(!sc.hide && es.some(e=>scoreOf(e,sc.key)!==null)) out.push(SCALE[sc.key]); }));
   return out;
 }
 function renderPraxis(){
@@ -734,6 +822,7 @@ function renderDetail(){
       <div class="stat"><span class="eyebrow">Befragungen</span><span class="v">${es.length}</span><span class="d">erste am ${fmtDate(first.ts)}</span></div>
     </div>
     <div class="charts">${scales.map(sc=>`<div class="chart"><h3><span class="sw" style="background:${sc.color}"></span>${sc.name} im Verlauf</h3><p>${sc.axis}${sc.bands?", Flächen = Schweregrade":""}</p><div id="c-${sc.key}"></div></div>`).join("")}</div>
+    ${fbmBlock(es)}
     <div>
       <span class="eyebrow">Alle Befragungen</span>
       <div class="table-wrap" style="margin-top:8px"><table>
@@ -747,6 +836,7 @@ function renderDetail(){
     </div>`}
   </div>`;
   scales.forEach(sc=>drawChart(document.getElementById("c-"+sc.key),es,sc));
+  drawFbmTrend(es);
   el.querySelector("#testPick").onchange=ev=>{
     const picked=[...el.querySelectorAll("#testPick input:checked")].map(i=>i.value);
     store.clients[selected].tests=KEYS.filter(k=>picked.includes(k));
@@ -767,6 +857,67 @@ function renderDetail(){
     dc.dataset.armed="1";dc.textContent=`${es.length} Befragung(en) mitlöschen?`;
     setTimeout(()=>{if(dc.isConnected){delete dc.dataset.armed;dc.textContent="Klient löschen"}},4000);
   };
+}
+
+/* ================= FBM-36: Motivprofil ================= */
+function fbmEntries(es){return es.filter(e=>valid("fbm36",e.a&&e.a.fbm36))}
+function fbmRows(e){
+  const a=e.a.fbm36;
+  const gs=FBM_MOT.map(m=>fbmG(a,m.key));
+  const mean=gs.reduce((s,x)=>s+x,0)/gs.length;
+  return FBM_MOT.map((m,i)=>{
+    const G=gs[i], F=fbmF(a,m.key);
+    const hits=m.frust.filter(ix=>a[ix]===4).length;
+    const krit=[];
+    if(G>=20)krit.push("A Ausprägung");
+    if(F>=9)krit.push("B Frustration");
+    if(hits>=2)krit.push("C Einzelitems");
+    if(G>=mean+5)krit.push("D Profilspitze");
+    return {m,G,F,krit,hits,mean};
+  });
+}
+function fbmBlock(es){
+  const fe=fbmEntries(es);
+  if(!fe.length) return "";
+  const last=fe[fe.length-1], rows=fbmRows(last);
+  const mean=rows[0].mean;
+  const bar=(v,max,col,mark)=>`<div class="mbar"><i style="width:${(v/max*100).toFixed(1)}%;background:${col}"></i>${mark!=null?`<b style="left:${(mark/max*100).toFixed(1)}%"></b>`:""}<span>${v}</span></div>`;
+  return `<div class="fbm">
+    <div class="instr-head"><h3 style="font-size:1.1rem">Beziehungsmotive (FBM-36)</h3><span class="scale-note">Stand ${fmtDate(last.ts)} · Mittelwert der Gesamtwerte ${mean.toFixed(1)} (grauer Strich im Balken)</span></div>
+    <div class="fbm-grid">
+      <span class="eyebrow">Motiv</span><span class="eyebrow">Gesamtwert G (0–24)</span><span class="eyebrow" style="text-align:right">Einstufung, Frustration, Kriterien</span>
+      ${rows.map(r=>`<div class="fbm-row">
+        <span class="fbm-name">${r.m.name}<small>${r.m.def}</small></span>
+        ${bar(r.G,24,r.krit.length?"var(--s2)":"var(--s1)",mean)}
+        <span class="fbm-tags">${sevChip(SCALE["fbmG_"+r.m.key],r.G)}<span class="chip ${r.F>=9?"sev4":r.F>=6?"sev2":"sev0"}">F ${r.F}</span>${r.krit.map(k=>`<span class="chip krit">${k}</span>`).join("")}</span>
+      </div>`).join("")}
+    </div>
+    ${rows.some(r=>r.hits)?`<p class="fbm-note"><strong>Einzelitems mit „trifft völlig zu“:</strong> ${rows.filter(r=>r.hits).map(r=>`${r.m.name} (${r.hits} von 3)`).join(", ")} – laut Auswertungsregel im Gespräch konkret nachfragen.</p>`:""}
+    ${fe.length>1?`<div class="chart"><h3>Gesamtwerte im Verlauf</h3><p>Sechs Motive, Gesamtwert 0–24</p><div id="c-fbm"></div>
+      <div class="legend">${FBM_MOT.map((m,i)=>`<span><i style="background:var(--s${i%4+1});${i>3?"opacity:.55":""}"></i>${m.name}</span>`).join("")}</div></div>`:""}
+    <p class="fbm-note">Die Grenzwerte sind vorläufig und inhaltlich festgelegt, nicht an einer Stichprobe ermittelt. Ein Motiv gilt als auffällig bei G ≥ 20 (A), F ≥ 9 (B), mindestens zwei Frustrationsitems mit 4 (C) oder G mindestens 5 Punkte über dem eigenen Mittelwert (D).</p>
+  </div>`;
+}
+function drawFbmTrend(es){
+  const host=document.getElementById("c-fbm"); if(!host)return;
+  const fe=fbmEntries(es), n=fe.length, max=24;
+  const W=900,H=340,L=40,R=24,T=14,B=34, pw=W-L-R, ph=H-T-B;
+  const y=v=>T+ph-(v/max)*ph, x=i=>n===1?L+pw/2:L+(i/(n-1))*pw;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gesamtwerte der sechs Beziehungsmotive im Verlauf">`;
+  s+=`<rect x="${L}" y="${y(24)}" width="${pw}" height="${y(19.5)-y(24)}" fill="var(--band3)"/>`;
+  [0,6,12,18,24].forEach(t=>{s+=`<line class="grid" x1="${L}" x2="${L+pw}" y1="${y(t)}" y2="${y(t)}" stroke-dasharray="${t===0?"":"2 4"}"/><text x="${L-8}" y="${y(t)+5}" text-anchor="end">${t}</text>`});
+  const every=Math.ceil(n/7);
+  fe.forEach((e,i)=>{ if(i%every===0||i===n-1) s+=`<text x="${x(i)}" y="${H-10}" text-anchor="middle">${fmtShort(e.ts)}</text>`; });
+  FBM_MOT.forEach((m,mi)=>{
+    const col=`var(--s${mi%4+1})`, op=mi>3?".55":"1";
+    const pts=fe.map((e,i)=>[x(i),y(fbmG(e.a.fbm36,m.key))]);
+    if(n>1) s+=`<path d="${pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join("")}" fill="none" stroke="${col}" stroke-opacity="${op}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    pts.forEach((p,i)=>{s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${i===n-1?5:4}" fill="${i===n-1?col:"var(--surface)"}" fill-opacity="${op}" stroke="${i===n-1?"var(--surface)":col}" stroke-opacity="${op}" stroke-width="2"/>`});
+    const lp=pts[n-1];
+    s+=`<text x="${lp[0]+8}" y="${lp[1]+4}" style="fill:var(--ink);font-weight:700;font-size:12px">${fbmG(fe[n-1].a.fbm36,m.key)}</text>`;
+  });
+  s+=`</svg>`;
+  host.innerHTML=s;
 }
 
 /* ================= Papierbogen nachtragen ================= */
@@ -974,7 +1125,8 @@ function renderSettings(){
       <p><strong>DASS-21</strong> (je 0–21): auffällig ab 10 (Depression), ab 6 (Angst), ab 10 (Stress).</p>
       <p><strong>Depressionsinventar</strong> (0–63): 0–8 keine · 9–14 minimale · 15–19 leichte · 20–29 mittelgradige · ab 30 schwere Depression. Aussage 13 (Suizidgedanken) wird wie PHQ-9 Frage 9 markiert.</p>
       <p><strong>Angstgedanken (B)</strong> (0–56) und <strong>Körperempfindungen (C)</strong> (0–68): 0–8 keine · 9–14 minimale · 15–19 leichte · 20–29 mittelgradige · ab 30 schwere Angst. Gezählt wird ab 0, die niedrigste Antwort („nie“ bzw. „macht mir keine Angst“) zählt 0 Punkte. Auf dem Papierbogen steht dafür eine 1, der Summenwert liegt daher um 14 (B) bzw. 17 (C) Punkte niedriger als beim Zusammenzählen auf Papier.</p>
-      <p class="muted" style="font-size:.85rem">Depressionsinventar sowie die Bögen B und C sind eigene, nicht validierte Fassungen. Die Einstufungen sind praxisintern festgelegt und beruhen nicht auf einer Normierungsstichprobe.</p>
+      <p><strong>FBM-36</strong>: sechs Beziehungsmotive mit je einem Gesamtwert G (0–24) und einem Frustrationswert F (0–12). Inverse Items (9, 16, 23, 27, 34, 36) werden automatisch umgepolt. G: 0–11 niedrig · 12–16 mittel · 17–19 erhöht · 20–24 auffällig. F: 0–5 unauffällig · 6–8 grenzwertig · 9–12 auffällig. Ein Motiv gilt als auffällig bei G ≥ 20, F ≥ 9, mindestens zwei Frustrationsitems mit „trifft völlig zu“ oder wenn G mindestens 5 Punkte über dem eigenen Mittelwert liegt.</p>
+      <p class="muted" style="font-size:.85rem">Depressionsinventar sowie die Bögen B und C sind eigene, nicht validierte Fassungen. Die Einstufungen sind praxisintern festgelegt und beruhen nicht auf einer Normierungsstichprobe. Beim FBM-36 sind die Grenzwerte laut Vorlage vorläufig und inhaltlich begründet; der Bogen ist ein Screening- und Gesprächsinstrument für die Therapieplanung, kein diagnostisches Testverfahren.</p>
       <p>Die Werte sind Screening-Hinweise und ersetzen keine Diagnose.</p>
       <p class="muted" style="font-size:.8rem">${INSTR.dass21.credit}</p>
     </section>
