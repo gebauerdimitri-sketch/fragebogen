@@ -15,7 +15,7 @@
   --ground:#edf1ef; --surface:#ffffff; --surface-2:#f5f8f7; --line:#d5dedb;
   --ink:#1b2a29; --ink-2:#4d5e5b; --ink-3:#778784;
   --accent:#2d5f5a; --accent-ink:#ffffff; --accent-soft:#dbe9e6;
-  --s-phq:#2a78d6; --s-gad:#eb6834;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#7a4bbf;
   --band1:rgba(120,140,135,.05); --band2:rgba(120,140,135,.10); --band3:rgba(120,140,135,.17);
   --band4:rgba(120,140,135,.25); --band5:rgba(120,140,135,.34);
   --ok-bg:#e3f0e6; --ok-ink:#23583a; --warn-bg:#fbefd6; --warn-ink:#7a4d00;
@@ -31,7 +31,7 @@
     --ground:#111716; --surface:#19211f; --surface-2:#1f2826; --line:#2f3b39;
     --ink:#e5eeec; --ink-2:#aebdba; --ink-3:#83938f;
     --accent:#7fb8b0; --accent-ink:#0f1a18; --accent-soft:#233532; --brand:#cfe3df;
-    --s-phq:#3987e5; --s-gad:#d95926;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#9085e9;
     --band1:rgba(170,190,185,.03); --band2:rgba(170,190,185,.07); --band3:rgba(170,190,185,.12);
     --band4:rgba(170,190,185,.18); --band5:rgba(170,190,185,.25);
     --ok-bg:#1d3326; --ok-ink:#9fd6b0; --warn-bg:#3a2e12; --warn-ink:#f0c46a;
@@ -43,7 +43,7 @@
   --ground:#111716; --surface:#19211f; --surface-2:#1f2826; --line:#2f3b39;
   --ink:#e5eeec; --ink-2:#aebdba; --ink-3:#83938f;
   --accent:#7fb8b0; --accent-ink:#0f1a18; --accent-soft:#233532; --brand:#cfe3df;
-  --s-phq:#3987e5; --s-gad:#d95926;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#9085e9;
   --band1:rgba(170,190,185,.03); --band2:rgba(170,190,185,.07); --band3:rgba(170,190,185,.12);
   --band4:rgba(170,190,185,.18); --band5:rgba(170,190,185,.25);
   --ok-bg:#1d3326; --ok-ink:#9fd6b0; --warn-bg:#3a2e12; --warn-ink:#f0c46a;
@@ -197,6 +197,18 @@ td.items{font-family:var(--mono);font-size:.82rem;color:var(--ink-2)}
 @media (max-width:560px){.pe-row{grid-template-columns:24px minmax(0,1fr)}.pe-row .seg{grid-column:2}}
 .legend-scale{font-size:.85rem;color:var(--ink-2)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.checks label{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:6px 14px;min-height:40px;font-size:.9rem;background:var(--surface);cursor:pointer}
+.checks label:has(input:checked){border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+.checks input{width:18px;height:18px;accent-color:var(--accent)}
+.instr-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.instr-head h4{margin:0;font-size:1rem}
+.scale-note{font-size:.85rem;color:var(--ink-3);margin:0}
+.pill-row{display:flex;gap:6px;flex-wrap:wrap}
+.sel{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:.55rem .7rem;min-height:44px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
 </style>
 
 </head>
@@ -208,51 +220,152 @@ td.items{font-family:var(--mono);font-size:.82rem;color:var(--ink-2)}
 <script>
 (() => {
 "use strict";
-/* ================= Inhalte ================= */
-const OPTIONS = ["Überhaupt nicht","An einzelnen Tagen","An mehr als der Hälfte der Tage","Beinahe jeden Tag"];
-const STEM = "Wie oft fühlten Sie sich im Verlauf der letzten 2 Wochen durch die folgenden Beschwerden beeinträchtigt?";
-const PHQ = [
-  "Wenig Interesse oder Freude an Ihren Tätigkeiten",
-  "Niedergeschlagenheit, Schwermut oder Hoffnungslosigkeit",
-  "Schwierigkeiten, ein- oder durchzuschlafen, oder vermehrter Schlaf",
-  "Müdigkeit oder Gefühl, keine Energie zu haben",
-  "Verminderter Appetit oder übermäßiges Bedürfnis zu essen",
-  "Schlechte Meinung von sich selbst; Gefühl, ein Versager zu sein oder die Familie enttäuscht zu haben",
-  "Schwierigkeiten, sich auf etwas zu konzentrieren, z. B. beim Zeitunglesen oder Fernsehen",
-  "Waren Ihre Bewegungen oder Ihre Sprache so verlangsamt, dass es auch anderen auffallen würde? Oder waren Sie im Gegenteil „zappelig“ oder ruhelos und hatten dadurch einen stärkeren Bewegungsdrang als sonst?",
-  "Gedanken, dass Sie lieber tot wären oder sich Leid zufügen möchten"
-];
-const GAD = [
-  "Nervosität, Ängstlichkeit oder Anspannung",
-  "Nicht in der Lage sein, Sorgen zu stoppen oder zu kontrollieren",
-  "Übermäßige Sorgen bezüglich verschiedener Angelegenheiten",
-  "Schwierigkeiten zu entspannen",
-  "Rastlosigkeit, sodass Stillsitzen schwerfällt",
-  "Schnelle Verärgerung oder Gereiztheit",
-  "Gefühl der Angst, so als würde etwas Schlimmes passieren"
-];
-const SEV = {
-  phq:{max:27,bands:[[0,4,"minimal"],[5,9,"leicht"],[10,14,"mittelgradig"],[15,19,"mittelschwer"],[20,27,"schwer"]]},
-  gad:{max:21,bands:[[0,4,"minimal"],[5,9,"leicht"],[10,14,"mittelgradig"],[15,21,"schwer"]]}
+/* ================= Antwortskalen ================= */
+const OPT_PHQ = ["Überhaupt nicht","An einzelnen Tagen","An mehr als der Hälfte der Tage","Beinahe jeden Tag"];
+const OPT_WHO = ["Zu keinem Zeitpunkt","Ab und zu","Etwas weniger als die Hälfte der Zeit","Etwas mehr als die Hälfte der Zeit","Meistens","Die ganze Zeit"];
+const OPT_SSS = ["Überhaupt nicht","Kaum","Etwas","Ziemlich","Sehr"];
+const OPT_DASS = ["Traf gar nicht auf mich zu","Traf bis zu einem gewissen Grad auf mich zu","Traf in beträchtlichem Maße auf mich zu","Traf sehr stark auf mich zu"];
+
+/* ================= Fragebögen ================= */
+const INSTR = {
+  phq9:{
+    name:"PHQ-9", subtitle:"Depression", options:OPT_PHQ,
+    stem:"Wie oft fühlten Sie sich im Verlauf der letzten 2 Wochen durch die folgenden Beschwerden beeinträchtigt?",
+    items:[
+      "Wenig Interesse oder Freude an Ihren Tätigkeiten",
+      "Niedergeschlagenheit, Schwermut oder Hoffnungslosigkeit",
+      "Schwierigkeiten, ein- oder durchzuschlafen, oder vermehrter Schlaf",
+      "Müdigkeit oder Gefühl, keine Energie zu haben",
+      "Verminderter Appetit oder übermäßiges Bedürfnis zu essen",
+      "Schlechte Meinung von sich selbst; Gefühl, ein Versager zu sein oder die Familie enttäuscht zu haben",
+      "Schwierigkeiten, sich auf etwas zu konzentrieren, z. B. beim Zeitunglesen oder Fernsehen",
+      "Waren Ihre Bewegungen oder Ihre Sprache so verlangsamt, dass es auch anderen auffallen würde? Oder waren Sie im Gegenteil „zappelig“ oder ruhelos und hatten dadurch einen stärkeren Bewegungsdrang als sonst?",
+      "Gedanken, dass Sie lieber tot wären oder sich Leid zufügen möchten"
+    ],
+    flag:{item:8,label:"Frage 9",text:"Frage 9 (Suizidgedanken)"},
+    scales:[{key:"phq9",name:"PHQ-9",axis:"Summenwert 0–27",max:27,better:"low",
+      bands:[[0,4,"minimal"],[5,9,"leicht"],[10,14,"mittelgradig"],[15,19,"mittelschwer"],[20,27,"schwer"]],
+      calc:a=>a.reduce((s,x)=>s+x,0)}]
+  },
+  gad7:{
+    name:"GAD-7", subtitle:"Angst", options:OPT_PHQ,
+    stem:"Wie oft fühlten Sie sich im Verlauf der letzten 2 Wochen durch die folgenden Beschwerden beeinträchtigt?",
+    items:[
+      "Nervosität, Ängstlichkeit oder Anspannung",
+      "Nicht in der Lage sein, Sorgen zu stoppen oder zu kontrollieren",
+      "Übermäßige Sorgen bezüglich verschiedener Angelegenheiten",
+      "Schwierigkeiten zu entspannen",
+      "Rastlosigkeit, sodass Stillsitzen schwerfällt",
+      "Schnelle Verärgerung oder Gereiztheit",
+      "Gefühl der Angst, so als würde etwas Schlimmes passieren"
+    ],
+    scales:[{key:"gad7",name:"GAD-7",axis:"Summenwert 0–21",max:21,better:"low",
+      bands:[[0,4,"minimal"],[5,9,"leicht"],[10,14,"mittelgradig"],[15,21,"schwer"]],
+      calc:a=>a.reduce((s,x)=>s+x,0)}]
+  },
+  who5:{
+    name:"WHO-5", subtitle:"Wohlbefinden", options:OPT_WHO,
+    stem:"Bitte geben Sie für jede der fünf Aussagen an, was für Ihr Befinden während der letzten zwei Wochen am ehesten zutrifft.",
+    items:[
+      "In den letzten zwei Wochen war ich froh und guter Laune",
+      "In den letzten zwei Wochen habe ich mich ruhig und entspannt gefühlt",
+      "In den letzten zwei Wochen habe ich mich energisch und aktiv gefühlt",
+      "In den letzten zwei Wochen habe ich mich beim Aufwachen frisch und ausgeruht gefühlt",
+      "In den letzten zwei Wochen war mein Alltag voller Dinge, die mich interessieren"
+    ],
+    note:"Höhere Werte bedeuten mehr Wohlbefinden.",
+    scales:[{key:"who5",name:"WHO-5",axis:"Prozentwert 0–100",max:100,better:"high",
+      bands:[[0,28,"sehr gering"],[29,50,"gering"],[51,100,"unauffällig"]],
+      calc:a=>a.reduce((s,x)=>s+x,0)*4}]
+  },
+  sss8:{
+    name:"SSS-8", subtitle:"Körperbeschwerden", options:OPT_SSS,
+    stem:"Wie stark fühlten Sie sich während der letzten 7 Tage durch die folgenden Beschwerden beeinträchtigt?",
+    items:[
+      "Magen- oder Darmbeschwerden",
+      "Rücken- oder Kreuzschmerzen",
+      "Schmerzen in Armen, Beinen oder Gelenken",
+      "Kopfschmerzen",
+      "Schmerzen im Brustbereich oder Kurzatmigkeit",
+      "Schwindel",
+      "Müdigkeit oder Gefühl, keine Energie zu haben",
+      "Schlafprobleme"
+    ],
+    scales:[{key:"sss8",name:"SSS-8",axis:"Summenwert 0–32",max:32,better:"low",
+      bands:[[0,3,"keine bis minimal"],[4,7,"gering"],[8,11,"mittel"],[12,15,"hoch"],[16,32,"sehr hoch"]],
+      calc:a=>a.reduce((s,x)=>s+x,0)}]
+  },
+  dass21:{
+    name:"DASS-21", subtitle:"Depression, Angst, Stress", options:OPT_DASS,
+    stem:"Bitte geben Sie an, wie sehr die Aussage während der letzten Woche auf Sie zutraf.",
+    items:[
+      "Ich fand es schwer, mich zu beruhigen.",
+      "Ich spürte, dass mein Mund trocken war.",
+      "Ich konnte überhaupt keine positiven Gefühle mehr erleben.",
+      "Ich hatte Atemprobleme (z. B. übermäßig schnelles Atmen, Atemlosigkeit ohne körperliche Anstrengung).",
+      "Es fiel mir schwer, mich dazu aufzuraffen, Dinge zu erledigen.",
+      "Ich tendierte dazu, auf Situationen überzureagieren.",
+      "Ich zitterte (z. B. an den Händen).",
+      "Ich fand alles anstrengend.",
+      "Ich machte mir Sorgen über Situationen, in denen ich in Panik geraten und mich lächerlich machen könnte.",
+      "Ich hatte das Gefühl, dass ich mich auf nichts mehr freuen konnte.",
+      "Ich bemerkte, dass ich mich schnell aufregte.",
+      "Ich fand es schwierig, mich zu entspannen.",
+      "Ich fühlte mich niedergeschlagen und traurig.",
+      "Ich reagierte ungehalten auf alles, was mich davon abhielt, meine momentane Tätigkeit fortzuführen.",
+      "Ich fühlte mich einer Panik nahe.",
+      "Ich war nicht in der Lage, mich für irgendetwas zu begeistern.",
+      "Ich fühlte mich als Person nicht viel wert.",
+      "Ich fand mich ziemlich empfindlich.",
+      "Ich habe meinen Herzschlag gespürt, ohne dass ich mich körperlich angestrengt hatte (z. B. Gefühl von Herzrasen oder Herzstolpern).",
+      "Ich fühlte mich grundlos ängstlich.",
+      "Ich empfand das Leben als sinnlos."
+    ],
+    credit:"DASS-21 (deutsch): Nilges & Essau (2021), Open Test Archive, ZPID – CC BY-SA 4.0",
+    scales:[
+      {key:"dassD",name:"DASS Depression",axis:"Summenwert 0–21",max:21,better:"low",idx:[2,4,9,12,15,16,20],
+       bands:[[0,9,"unauffällig"],[10,21,"auffällig"]]},
+      {key:"dassA",name:"DASS Angst",axis:"Summenwert 0–21",max:21,better:"low",idx:[1,3,6,8,14,18,19],
+       bands:[[0,5,"unauffällig"],[6,21,"auffällig"]]},
+      {key:"dassS",name:"DASS Stress",axis:"Summenwert 0–21",max:21,better:"low",idx:[0,5,7,10,11,13,17],
+       bands:[[0,9,"unauffällig"],[10,21,"auffällig"]]}
+    ]
+  }
 };
-function sevIndex(kind,score){const b=SEV[kind].bands;for(let i=0;i<b.length;i++)if(score<=b[i][1])return i;return b.length-1}
-function sevChip(kind,score){
-  const i=sevIndex(kind,score), label=SEV[kind].bands[i][2];
-  const cls = kind==="gad" && i===3 ? "sev4" : "sev"+i;
+const KEYS = Object.keys(INSTR);
+Object.values(INSTR).forEach(ins=>ins.scales.forEach(sc=>{ if(!sc.calc) sc.calc = a => sc.idx.reduce((s,i)=>s+a[i],0); }));
+const COLOR = {phq9:"var(--s1)",gad7:"var(--s2)",who5:"var(--s3)",sss8:"var(--s4)",dassD:"var(--s1)",dassA:"var(--s2)",dassS:"var(--s3)"};
+const SCALE = {};
+KEYS.forEach(k=>INSTR[k].scales.forEach(sc=>{SCALE[sc.key]=Object.assign({instr:k,color:COLOR[sc.key]||"var(--s1)"},sc)}));
+const scalesOf = k => INSTR[k].scales;
+const sum = a => a.reduce((s,x)=>s+x,0);
+
+function sevIndex(sc,v){for(let i=0;i<sc.bands.length;i++) if(v<=sc.bands[i][1]) return i; return sc.bands.length-1}
+function sevChip(sc,v){
+  const i=sevIndex(sc,v), label=sc.bands[i][2];
+  const n=sc.bands.length;
+  let rank = sc.better==="high" ? (n-1-i) : i;           // 0 = günstig
+  const cls = ["sev0","sev2","sev3","sev4","sev4"][Math.min(rank* (n<=3?2:1),4)];
   return `<span class="chip ${cls}">${label}</span>`;
 }
-const sum = a => a.reduce((s,x)=>s+x,0);
 
 /* ================= Speicher ================= */
 const KEY="phqgad.v1";
-let store={clients:{},entries:[],pinHash:null,demo:false};
+let store={clients:{},entries:[],pinHash:null};
 let storageOk=true;
+function migrate(){
+  (store.entries||[]).forEach(e=>{
+    if(!e.a){ e.a={}; if(e.phq) e.a.phq9=e.phq; if(e.gad) e.a.gad7=e.gad; delete e.phq; delete e.gad; }
+  });
+  Object.values(store.clients||{}).forEach(c=>{ if(!Array.isArray(c.tests)) c.tests=["phq9","gad7"]; });
+}
 function load(){
   try{
     const raw=localStorage.getItem(KEY);
-    if(raw){store=Object.assign(store,JSON.parse(raw));}
-    else{seedDemo();save();}
-  }catch(e){storageOk=false;seedDemo();}
+    if(raw) store=Object.assign(store,JSON.parse(raw)); else seedDemo();
+    migrate();
+    if(!raw) save();
+  }catch(e){storageOk=false;seedDemo();migrate()}
 }
 function save(){
   try{localStorage.setItem(KEY,JSON.stringify(store));storageOk=true;return true}
@@ -264,9 +377,9 @@ function seedDemo(){
   const now=Date.now(), day=864e5;
   const phq=[[2,3,2,2,1,2,2,1,1],[2,2,2,2,1,1,2,1,0],[1,2,2,1,1,1,1,0,0],[1,1,1,1,1,1,1,0,0],[1,1,1,1,0,0,1,0,0],[0,1,1,1,0,0,1,0,0]];
   const gad=[[3,2,3,2,2,2,2],[2,2,2,2,2,2,1],[2,2,2,1,1,1,1],[1,1,2,1,1,1,1],[1,1,1,1,0,1,0],[1,0,1,1,0,1,0]];
-  store.clients={DEMO:{created:now-60*day}};
-  store.entries=phq.map((p,i)=>({id:"demo"+i,code:"DEMO",ts:now-(5-i)*14*day,phq:p,gad:gad[i]}));
-  store.demo=true;
+  const who=[[1,1,1,0,1],[1,1,1,1,1],[2,2,1,1,2],[2,2,2,2,2],[3,3,2,2,3],[3,3,3,2,3]];
+  store.clients={DEMO:{created:now-60*day,tests:["phq9","gad7","who5"]}};
+  store.entries=phq.map((p,i)=>({id:"demo"+i,code:"DEMO",ts:now-(5-i)*14*day,a:{phq9:p,gad7:gad[i],who5:who[i]}}));
 }
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const fmtDate=ts=>new Date(ts).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
@@ -274,6 +387,10 @@ const fmtShort=ts=>new Date(ts).toLocaleDateString("de-DE",{day:"2-digit",month:
 const fmtTime=ts=>new Date(ts).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const normCode=s=>s.toUpperCase().replace(/[^A-Z0-9ÄÖÜ-]/g,"").slice(0,12);
+const testsOf = code => (store.clients[code]&&store.clients[code].tests||[]).filter(k=>INSTR[k]);
+const valid = (k,a) => Array.isArray(a) && a.length===INSTR[k].items.length && a.every(v=>Number.isInteger(v)&&v>=0&&v<INSTR[k].options.length);
+const scoreOf = (e,scKey) => { const sc=SCALE[scKey], a=e.a&&e.a[sc.instr]; return valid(sc.instr,a)? sc.calc(a) : null; };
+const flagged = e => { const a=e.a&&e.a.phq9; return valid("phq9",a) && a[8]>0 ? a[8] : 0; };
 
 async function hash(pin){
   const txt="phqgad:"+pin;
@@ -285,12 +402,10 @@ async function hash(pin){
 
 /* ================= Zustand ================= */
 const app=document.getElementById("app");
-let view="start";          // start | quiz | thanks | pin | praxis
-let quiz=null;             // {code, step, answers:{phq:[],gad:[]}}
+let view="start";
+let quiz=null;
 let pinFrom="start";
 let praxisTab="clients", selected=null, idleTimer=null, thanksTimer=null;
-
-const STEPS=[...PHQ.map((t,i)=>({k:"phq",i,t})),...GAD.map((t,i)=>({k:"gad",i,t}))];
 
 function toast(t){const el=document.getElementById("toast");el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2600)}
 function resetIdle(){
@@ -299,7 +414,6 @@ function resetIdle(){
 }
 document.addEventListener("pointerdown",resetIdle);
 function go(v){view=v;hideTip();render();resetIdle();window.scrollTo(0,0)}
-
 function render(){
   clearTimeout(thanksTimer);
   if(view==="start") return renderStart();
@@ -322,14 +436,16 @@ async function toggleFs(){
 document.addEventListener("fullscreenchange",()=>{if(view==="start")render()});
 
 /* ================= Klientenansicht ================= */
-const brand=`<div class="brand"><svg class="logo" viewBox="0 0 512 512" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"><circle cx="256" cy="256" r="247"/><path d="M101 153V262q0 14 14 14H205q14 0 14 14V436"/><path d="M411 153V262q0 14-14 14H307q-14 0-14 14V436"/><path d="M256 168V436"/></svg>Gebauer</div>`;
+const logo=`<svg class="logo" viewBox="0 0 512 512" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"><circle cx="256" cy="256" r="247"/><path d="M101 153V262q0 14 14 14H205q14 0 14 14V436"/><path d="M411 153V262q0 14-14 14H307q-14 0-14 14V436"/><path d="M256 168V436"/></svg>`;
+const brand=`<div class="brand">${logo}Gebauer</div>`;
+
 function renderStart(){
   app.innerHTML=`<div class="kiosk">
     <div class="kiosk-top">${brand}<div class="row"><button class="btn ghost" id="fsBtn" ${fsOk()?"":"hidden"}>${document.fullscreenElement?"Vollbild beenden":"Vollbild"}</button><button class="btn ghost" id="toPraxis">Praxis</button></div></div>
     <main class="kiosk-main welcome">
       <div style="display:flex;flex-direction:column;gap:12px">
         <h1>Willkommen</h1>
-        <p class="muted">Bitte geben Sie Ihr persönliches Kürzel ein. Sie beantworten danach 16 kurze Fragen zu Ihrem Befinden in den letzten zwei Wochen. Das dauert etwa 3 Minuten.</p>
+        <p class="muted">Bitte geben Sie Ihr persönliches Kürzel ein. Sie beantworten danach einige kurze Fragen zu Ihrem Befinden.</p>
       </div>
       <form id="codeForm" class="code-row" autocomplete="off">
         <input id="codeInput" class="code-input" aria-label="Ihr Kürzel" placeholder="KÜRZEL" maxlength="12" autocapitalize="characters" spellcheck="false">
@@ -342,11 +458,15 @@ function renderStart(){
   inp.addEventListener("input",()=>{const p=inp.selectionStart;inp.value=normCode(inp.value);inp.setSelectionRange(p,p);document.getElementById("codeMsg").textContent=""});
   document.getElementById("codeForm").onsubmit=e=>{
     e.preventDefault();
-    const code=normCode(inp.value);
-    const m=document.getElementById("codeMsg");
+    const code=normCode(inp.value), m=document.getElementById("codeMsg");
     if(!code){m.textContent="Bitte geben Sie Ihr Kürzel ein.";return}
     if(!store.clients[code]){m.textContent="Dieses Kürzel ist nicht bekannt. Bitte prüfen Sie die Eingabe oder fragen Sie in der Praxis nach.";return}
-    quiz={code,step:0,answers:{phq:Array(9).fill(null),gad:Array(7).fill(null)}};
+    const tests=testsOf(code);
+    if(!tests.length){m.textContent="Für dieses Kürzel ist zurzeit kein Fragebogen hinterlegt. Bitte wenden Sie sich an die Praxis.";return}
+    const steps=[];
+    tests.forEach(k=>INSTR[k].items.forEach((t,i)=>steps.push({k,i,t})));
+    const answers={}; tests.forEach(k=>answers[k]=Array(INSTR[k].items.length).fill(null));
+    quiz={code,tests,steps,step:0,answers};
     go("quiz");
   };
   document.getElementById("toPraxis").onclick=()=>go("pin");
@@ -354,47 +474,44 @@ function renderStart(){
 }
 
 function renderQuiz(){
-  const s=STEPS[quiz.step];
+  const s=quiz.steps[quiz.step], ins=INSTR[s.k];
   const cur=quiz.answers[s.k][s.i];
-  const title=s.k==="phq"?"Teil 1 von 2":"Teil 2 von 2";
-  const n=s.k==="phq"?9:7;
-  let bars="";
-  STEPS.forEach((x,j)=>{ if(j===9) bars+=`<i class="gap"></i>`; bars+=`<i class="${quiz.answers[x.k][x.i]!==null?"done":""}"></i>`; });
+  const tIdx=quiz.tests.indexOf(s.k);
+  let bars="",prev=null;
+  quiz.steps.forEach(x=>{ if(prev&&x.k!==prev) bars+=`<i class="gap"></i>`; prev=x.k; bars+=`<i class="${quiz.answers[x.k][x.i]!==null?"done":""}"></i>`; });
   app.innerHTML=`<div class="kiosk">
     <div class="kiosk-top">${brand}<button class="btn ghost" id="cancel">Abbrechen</button></div>
     <main class="kiosk-main" style="justify-content:flex-start;gap:22px">
       <div class="progress" aria-hidden="true">${bars}</div>
-      <div class="q-meta"><span class="eyebrow">${title}</span><span class="eyebrow">Frage ${s.i+1} von ${n}</span></div>
-      <p class="q-stem" style="margin:0">${STEM}</p>
+      <div class="q-meta"><span class="eyebrow">Teil ${tIdx+1} von ${quiz.tests.length}</span><span class="eyebrow">Frage ${s.i+1} von ${ins.items.length}</span></div>
+      <p class="q-stem" style="margin:0">${ins.stem}</p>
       <h1 class="q-text" id="qtext">${esc(s.t)}</h1>
       <div class="answers" role="group" aria-labelledby="qtext">
-        ${OPTIONS.map((o,v)=>`<button class="answer" data-v="${v}" aria-pressed="${cur===v}"><span class="dot"></span>${o}</button>`).join("")}
+        ${ins.options.map((o,v)=>`<button class="answer" data-v="${v}" aria-pressed="${cur===v}"><span class="dot"></span>${o}</button>`).join("")}
       </div>
       <div class="q-nav">
         <button class="btn big" id="back" ${quiz.step===0?"disabled":""}>Zurück</button>
-        <button class="btn primary big" id="next" ${cur===null?"disabled":""}>${quiz.step===STEPS.length-1?"Absenden":"Weiter"}</button>
+        <button class="btn primary big" id="next" ${cur===null?"disabled":""}>${quiz.step===quiz.steps.length-1?"Absenden":"Weiter"}</button>
       </div>
     </main></div>`;
   app.querySelectorAll(".answer").forEach(b=>b.onclick=()=>{
     quiz.answers[s.k][s.i]=+b.dataset.v;
     app.querySelectorAll(".answer").forEach(x=>x.setAttribute("aria-pressed",x===b));
     document.getElementById("next").disabled=false;
-    if(quiz.step<STEPS.length-1){const st=quiz.step;setTimeout(()=>{if(view==="quiz"&&quiz&&quiz.step===st){quiz.step++;render()}},320)}
+    if(quiz.step<quiz.steps.length-1){const st=quiz.step;setTimeout(()=>{if(view==="quiz"&&quiz&&quiz.step===st){quiz.step++;render()}},320)}
   });
   document.getElementById("back").onclick=()=>{quiz.step--;render()};
   document.getElementById("next").onclick=()=>{
-    if(quiz.step<STEPS.length-1){quiz.step++;render();return}
-    finish();
+    if(quiz.step<quiz.steps.length-1){quiz.step++;render();return}
+    const miss=quiz.steps.findIndex(x=>quiz.answers[x.k][x.i]===null);
+    if(miss>=0){quiz.step=miss;render();return}
+    const a={}; quiz.tests.forEach(k=>a[k]=quiz.answers[k].slice());
+    store.entries.push({id:uid(),code:quiz.code,ts:Date.now(),a});
+    save();quiz=null;go("thanks");
   };
   document.getElementById("cancel").onclick=()=>{quiz=null;go("start")};
 }
-function finish(){
-  const a=quiz.answers;
-  if(a.phq.includes(null)||a.gad.includes(null)){quiz.step=STEPS.findIndex(x=>a[x.k][x.i]===null);render();return}
-  store.entries.push({id:uid(),code:quiz.code,ts:Date.now(),phq:a.phq.slice(),gad:a.gad.slice()});
-  save();
-  quiz=null;go("thanks");
-}
+
 function renderThanks(){
   app.innerHTML=`<div class="kiosk"><div class="kiosk-top">${brand}</div>
     <main class="kiosk-main thanks">
@@ -438,9 +555,11 @@ function renderPin(){
 }
 
 /* ================= Praxis ================= */
-function clientStats(code){
-  const es=store.entries.filter(e=>e.code===code).sort((a,b)=>a.ts-b.ts);
-  return {es,last:es[es.length-1]};
+const entriesOf = code => store.entries.filter(e=>e.code===code).sort((a,b)=>a.ts-b.ts);
+function usedScales(es){
+  const out=[];
+  KEYS.forEach(k=>scalesOf(k).forEach(sc=>{ if(es.some(e=>scoreOf(e,sc.key)!==null)) out.push(SCALE[sc.key]); }));
+  return out;
 }
 function renderPraxis(){
   app.innerHTML=`<div class="praxis">
@@ -464,9 +583,12 @@ function renderClients(){
   const codes=Object.keys(store.clients).sort();
   if(!selected||!store.clients[selected]) selected=codes[0]||null;
   const items=codes.map(c=>{
-    const {es,last}=clientStats(c);
-    const flag=es.some(e=>e.phq[8]>0);
-    const sub=last?`<span>${fmtDate(last.ts)}</span><span class="num">PHQ ${sum(last.phq)} · GAD ${sum(last.gad)}</span>${last.phq[8]>0?'<span class="chip flag">Item 9</span>':""}`:"<span>noch keine Antworten</span>";
+    const es=entriesOf(c), last=es[es.length-1];
+    let sub="<span>noch keine Antworten</span>";
+    if(last){
+      const parts=usedScales([last]).slice(0,3).map(sc=>`${sc.name.replace("DASS ","")} ${scoreOf(last,sc.key)}`);
+      sub=`<span>${fmtDate(last.ts)}</span><span class="num">${parts.join(" · ")}</span>${flagged(last)?'<span class="chip flag">Item 9</span>':""}`;
+    }
     return `<li><button data-c="${esc(c)}" aria-current="${c===selected}"><span class="code">${esc(c)}</span><span class="num muted" style="font-size:.85rem">${es.length}×</span><span class="sub">${sub}</span></button></li>`;
   }).join("");
   body.innerHTML=`<div class="layout">
@@ -487,7 +609,7 @@ function renderClients(){
     e.preventDefault();const c=normCode(nc.value);
     if(!c)return;
     if(store.clients[c]){toast("Kürzel "+c+" existiert bereits");return}
-    store.clients[c]={created:Date.now()};save();selected=c;toast("Kürzel "+c+" angelegt");renderClients();
+    store.clients[c]={created:Date.now(),tests:["phq9","gad7"]};save();selected=c;toast("Kürzel "+c+" angelegt");renderClients();
   };
   body.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{selected=b.dataset.c;renderClients()});
   renderDetail();
@@ -496,57 +618,63 @@ function renderClients(){
 function renderDetail(){
   const el=document.getElementById("detail");
   if(!selected){el.innerHTML=`<div class="empty">Wählen Sie links einen Klienten aus.</div>`;return}
-  const {es,last}=clientStats(selected);
-  const first=es[0];
-  const flagged=es.filter(e=>e.phq[8]>0);
-  const delta=(k)=>{ if(es.length<2)return ""; const d=sum(last[k])-sum(first[k]); return `${d>0?"+":d<0?"−":"±"}${Math.abs(d)} seit ${fmtDate(first.ts)}`;};
+  const es=entriesOf(selected), last=es[es.length-1], first=es[0];
+  const tests=testsOf(selected);
+  const scales=usedScales(es);
+  const flags=es.filter(flagged);
+  const stat=sc=>{
+    const withScore=es.filter(e=>scoreOf(e,sc.key)!==null);
+    const l=withScore[withScore.length-1], f=withScore[0];
+    if(!l) return "";
+    const v=scoreOf(l,sc.key), d=withScore.length>1? v-scoreOf(f,sc.key):null;
+    return `<div class="stat"><span class="eyebrow">${sc.name}</span><span class="v">${v}<small> / ${sc.max}</small></span><span>${sevChip(sc,v)}</span>
+      <span class="d">${fmtDate(l.ts)}${d!==null?` · ${d>0?"+":d<0?"−":"±"}${Math.abs(d)} seit ${fmtDate(f.ts)}`:""}</span></div>`;
+  };
   el.innerHTML=`<div class="detail">
     <div class="detail-head">
       <div><span class="eyebrow">Klient</span><h2>${esc(selected)}</h2></div>
       <div class="row"><button class="btn" id="addPaper">Papierbogen nachtragen</button>${last?`<button class="btn primary" id="showClient">Verlauf zeigen</button>`:""}<button class="btn danger" id="delClient">Klient löschen</button></div>
     </div>
+    <div>
+      <div class="instr-head"><span class="eyebrow">Fragebögen für diesen Klienten</span><span class="scale-note">wird beim nächsten Ausfüllen am Tablet verwendet</span></div>
+      <div class="checks" id="testPick">${KEYS.map(k=>`<label><input type="checkbox" value="${k}" ${tests.includes(k)?"checked":""}>${INSTR[k].name} <span class="muted">${INSTR[k].items.length} Fragen</span></label>`).join("")}</div>
+    </div>
     ${selected==="DEMO"?`<div class="demo-note">Beispieldaten zur Ansicht. Löschen Sie „DEMO“, sobald Sie eigene Klienten anlegen.</div>`:""}
-    ${last&&last.phq[8]>0?`<div class="alert"><strong>Achtung:</strong> Bei der letzten Befragung (${fmtDate(last.ts)}) wurde PHQ-9 Frage 9 (Suizidgedanken) mit „${OPTIONS[last.phq[8]]}“ beantwortet. Bitte zeitnah ansprechen.</div>`
-      :flagged.length?`<div class="alert" style="background:transparent">PHQ-9 Frage 9 war früher positiv: ${flagged.map(e=>fmtDate(e.ts)).join(", ")}.</div>`:""}
+    ${last&&flagged(last)?`<div class="alert"><strong>Achtung:</strong> Bei der letzten Befragung (${fmtDate(last.ts)}) wurde PHQ-9 Frage 9 (Suizidgedanken) mit „${INSTR.phq9.options[flagged(last)]}“ beantwortet. Bitte zeitnah ansprechen.</div>`
+      :flags.length?`<div class="alert" style="background:transparent">PHQ-9 Frage 9 war früher positiv: ${flags.map(e=>fmtDate(e.ts)).join(", ")}.</div>`:""}
     ${!last?`<div class="empty" style="padding:0">Für dieses Kürzel liegen noch keine Antworten vor. Geben Sie das Tablet im Klientenmodus weiter; der Klient meldet sich mit <span class="num">${esc(selected)}</span> an.</div>`:`
-    <div class="summary">
-      <div class="stat"><span class="eyebrow">PHQ-9 · Depression</span><span class="v">${sum(last.phq)}<small> / 27</small></span><span>${sevChip("phq",sum(last.phq))}</span><span class="d">${fmtDate(last.ts)}${es.length>1?" · "+delta("phq"):""}</span></div>
-      <div class="stat"><span class="eyebrow">GAD-7 · Angst</span><span class="v">${sum(last.gad)}<small> / 21</small></span><span>${sevChip("gad",sum(last.gad))}</span><span class="d">${fmtDate(last.ts)}${es.length>1?" · "+delta("gad"):""}</span></div>
+    <div class="summary">${scales.map(stat).join("")}
       <div class="stat"><span class="eyebrow">Befragungen</span><span class="v">${es.length}</span><span class="d">erste am ${fmtDate(first.ts)}</span></div>
     </div>
-    <div class="charts">
-      <div class="chart"><h3><span class="sw" style="background:var(--s-phq)"></span>PHQ-9 im Verlauf</h3><p>Summenwert 0–27, Flächen = Schweregrade</p><div id="cPhq"></div></div>
-      <div class="chart"><h3><span class="sw" style="background:var(--s-gad)"></span>GAD-7 im Verlauf</h3><p>Summenwert 0–21, Flächen = Schweregrade</p><div id="cGad"></div></div>
-    </div>
+    <div class="charts">${scales.map(sc=>`<div class="chart"><h3><span class="sw" style="background:${sc.color}"></span>${sc.name} im Verlauf</h3><p>${sc.axis}, Flächen = Schweregrade</p><div id="c-${sc.key}"></div></div>`).join("")}</div>
     <div>
       <span class="eyebrow">Alle Befragungen</span>
       <div class="table-wrap" style="margin-top:8px"><table>
-        <thead><tr><th>Datum</th><th>PHQ-9</th><th>Schweregrad</th><th>Fr. 9</th><th>GAD-7</th><th>Schweregrad</th><th>Einzelantworten PHQ | GAD</th><th></th></tr></thead>
+        <thead><tr><th>Datum</th>${scales.map(sc=>`<th>${sc.name}</th>`).join("")}<th>PHQ-9 Fr. 9</th><th></th></tr></thead>
         <tbody>${es.slice().reverse().map(e=>`<tr>
           <td>${fmtDate(e.ts)} ${e.src==="paper"?'<span class="chip sev0" style="background:var(--surface-2);color:var(--ink-2)">Papier</span>':`<span class="muted">${fmtTime(e.ts)}</span>`}</td>
-          <td class="num">${sum(e.phq)}</td><td>${sevChip("phq",sum(e.phq))}</td>
-          <td>${e.phq[8]>0?`<span class="chip flag">${e.phq[8]}</span>`:'<span class="num muted">0</span>'}</td>
-          <td class="num">${sum(e.gad)}</td><td>${sevChip("gad",sum(e.gad))}</td>
-          <td class="items">${e.phq.join(" ")} | ${e.gad.join(" ")}</td>
+          ${scales.map(sc=>{const v=scoreOf(e,sc.key);return `<td>${v===null?'<span class="muted">–</span>':`<span class="num">${v}</span> ${sevChip(sc,v)}`}</td>`}).join("")}
+          <td>${flagged(e)?`<span class="chip flag">${flagged(e)}</span>`:(e.a&&e.a.phq9?'<span class="num muted">0</span>':'<span class="muted">–</span>')}</td>
           <td><button class="btn ghost danger" data-del="${e.id}" aria-label="Befragung vom ${fmtDate(e.ts)} löschen">Löschen</button></td></tr>`).join("")}</tbody>
       </table></div>
     </div>`}
   </div>`;
-  if(last){
-    drawChart(document.getElementById("cPhq"),es,"phq","var(--s-phq)","PHQ-9");
-    drawChart(document.getElementById("cGad"),es,"gad","var(--s-gad)","GAD-7");
-  }
+  scales.forEach(sc=>drawChart(document.getElementById("c-"+sc.key),es,sc));
+  el.querySelector("#testPick").onchange=ev=>{
+    const picked=[...el.querySelectorAll("#testPick input:checked")].map(i=>i.value);
+    store.clients[selected].tests=KEYS.filter(k=>picked.includes(k));
+    save();toast(picked.length?"Zuweisung gespeichert":"Kein Fragebogen zugewiesen");
+  };
+  document.getElementById("addPaper").onclick=()=>renderPaper();
+  const sc2=document.getElementById("showClient");if(sc2)sc2.onclick=()=>go("show");
   el.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
     if(b.dataset.armed){store.entries=store.entries.filter(e=>e.id!==b.dataset.del);save();toast("Befragung gelöscht");renderClients();return}
     b.dataset.armed="1";b.textContent="Wirklich löschen?";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="Löschen"}},4000);
   });
-  document.getElementById("addPaper").onclick=()=>renderPaper();
-  const sc=document.getElementById("showClient");if(sc)sc.onclick=()=>go("show");
   const dc=document.getElementById("delClient");
   dc.onclick=()=>{
     if(dc.dataset.armed){
       store.entries=store.entries.filter(e=>e.code!==selected);delete store.clients[selected];
-      if(selected==="DEMO")store.demo=false;
       save();toast("Klient gelöscht");selected=null;renderClients();return;
     }
     dc.dataset.armed="1";dc.textContent=`${es.length} Befragung(en) mitlöschen?`;
@@ -556,110 +684,117 @@ function renderDetail(){
 
 /* ================= Papierbogen nachtragen ================= */
 function isoToday(){const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)}
-function renderPaper(){
+function renderPaper(instrKey){
   const el=document.getElementById("detail");
-  const ans={phq:Array(9).fill(null),gad:Array(7).fill(null)};
-  const rows=(k,list)=>list.map((t,i)=>`<div class="pe-row" data-k="${k}" data-i="${i}"><span class="n">${i+1}</span><span class="t">${esc(t)}</span>
-    <div class="seg" role="group" aria-label="${k.toUpperCase()} Frage ${i+1}">${[0,1,2,3].map(v=>`<button type="button" data-v="${v}" aria-pressed="false">${v}</button>`).join("")}</div></div>`).join("");
+  const k=instrKey||testsOf(selected)[0]||"phq9", ins=INSTR[k];
+  const ans=Array(ins.items.length).fill(null);
   el.innerHTML=`<form class="pe" id="peForm" autocomplete="off">
     <div class="detail-head">
       <div><span class="eyebrow">Papierbogen nachtragen</span><h2>${esc(selected)}</h2></div>
       <button type="button" class="btn ghost" id="peCancel">Abbrechen</button>
     </div>
     <div class="pe-top">
+      <label for="peInstr">Fragebogen<select id="peInstr" class="sel">${KEYS.map(x=>`<option value="${x}" ${x===k?"selected":""}>${INSTR[x].name} – ${INSTR[x].subtitle}</option>`).join("")}</select></label>
       <label for="peDate">Ausgefüllt am<input type="date" id="peDate" class="field" value="${isoToday()}" max="${isoToday()}" required></label>
-      <p class="legend-scale" style="margin:0">0 = überhaupt nicht · 1 = an einzelnen Tagen · 2 = an mehr als der Hälfte der Tage · 3 = beinahe jeden Tag</p>
+      <p class="legend-scale" style="margin:0">${ins.options.map((o,v)=>`${v} = ${o.toLowerCase()}`).join(" · ")}</p>
     </div>
-    <div class="pe-sec"><h3>PHQ-9 <span class="num muted" id="sumPhq">– / 27</span></h3>${rows("phq",PHQ)}</div>
-    <div class="pe-sec"><h3>GAD-7 <span class="num muted" id="sumGad">– / 21</span></h3>${rows("gad",GAD)}</div>
+    <div class="pe-sec"><h3>${ins.name} <span class="num muted" id="peSum">0 von ${ins.items.length} beantwortet</span></h3>
+      ${ins.items.map((t,i)=>`<div class="pe-row" data-i="${i}"><span class="n">${i+1}</span><span class="t">${esc(t)}</span>
+        <div class="seg" role="group" aria-label="Frage ${i+1}">${ins.options.map((o,v)=>`<button type="button" data-v="${v}" aria-pressed="false" title="${esc(o)}">${v}</button>`).join("")}</div></div>`).join("")}
+    </div>
     <div class="msg" id="peMsg" role="alert"></div>
     <div class="row" style="justify-content:flex-end"><button type="button" class="btn" id="peCancel2">Abbrechen</button><button class="btn primary">Befragung speichern</button></div>
   </form>`;
   const upd=()=>{
-    ["phq","gad"].forEach(k=>{const done=!ans[k].includes(null);const v=sum(ans[k].map(x=>x||0));
-      document.getElementById(k==="phq"?"sumPhq":"sumGad").innerHTML=done?`${v} / ${SEV[k].max} ${sevChip(k,v)}`:`${ans[k].filter(x=>x!==null).length} von ${ans[k].length} beantwortet`;});
+    const done=!ans.includes(null);
+    document.getElementById("peSum").innerHTML = done
+      ? ins.scales.map(sc=>`${sc.name}: ${sc.calc(ans)} / ${sc.max} ${sevChip(sc,sc.calc(ans))}`).join(" · ")
+      : `${ans.filter(x=>x!==null).length} von ${ans.length} beantwortet`;
   };
   el.querySelectorAll(".pe-row").forEach(r=>r.querySelectorAll("button").forEach(b=>b.onclick=()=>{
-    ans[r.dataset.k][+r.dataset.i]=+b.dataset.v;r.classList.remove("missing");
+    ans[+r.dataset.i]=+b.dataset.v;r.classList.remove("missing");
     r.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));upd();
   }));
-  upd();
+  document.getElementById("peInstr").onchange=ev=>renderPaper(ev.target.value);
   const back=()=>renderDetail();
   document.getElementById("peCancel").onclick=back;document.getElementById("peCancel2").onclick=back;
   document.getElementById("peForm").onsubmit=e=>{
     e.preventDefault();
-    const m=document.getElementById("peMsg");
-    const dv=document.getElementById("peDate").value;
+    const m=document.getElementById("peMsg"), dv=document.getElementById("peDate").value;
     if(!dv){m.textContent="Bitte das Datum eintragen.";return}
     if(dv>isoToday()){m.textContent="Das Datum darf nicht in der Zukunft liegen.";return}
     let miss=0;
-    el.querySelectorAll(".pe-row").forEach(r=>{if(ans[r.dataset.k][+r.dataset.i]===null){r.classList.add("missing");miss++}});
+    el.querySelectorAll(".pe-row").forEach(r=>{if(ans[+r.dataset.i]===null){r.classList.add("missing");miss++}});
     if(miss){m.textContent=`Es fehlen noch ${miss} Antwort(en) – rot markiert.`;el.querySelector(".pe-row.missing").scrollIntoView({block:"center"});return}
-    const [Y,M,D]=dv.split("-").map(Number);
-    store.entries.push({id:uid(),code:selected,ts:new Date(Y,M-1,D,12,0).getTime(),phq:ans.phq,gad:ans.gad,src:"paper"});
-    save();toast(`Befragung vom ${fmtDate(new Date(Y,M-1,D))} gespeichert`);renderClients();
+    const [Y,M,D]=dv.split("-").map(Number), ts=new Date(Y,M-1,D,12,0).getTime();
+    const same=store.entries.find(e=>e.code===selected&&Math.abs(e.ts-ts)<36e5&&e.src==="paper"&&!(e.a&&e.a[k]));
+    if(same){same.a[k]=ans.slice()}
+    else store.entries.push({id:uid(),code:selected,ts,a:{[k]:ans.slice()},src:"paper"});
+    save();toast(`${ins.name} vom ${fmtDate(ts)} gespeichert`);renderClients();
   };
 }
 
 /* ================= Ansicht für Klienten ================= */
 function renderShow(){
-  const {es,last}=clientStats(selected);
+  const es=entriesOf(selected), last=es[es.length-1];
   if(!last){go("praxis");return}
-  const lp=sum(last.phq), lg=sum(last.gad);
+  const scales=usedScales(es);
   app.innerHTML=`<div class="show">
     <div class="bar">
       <div><span class="eyebrow">Ihr Verlauf · ${esc(selected)}</span><h1 style="font-size:clamp(1.6rem,4vw,2.4rem)">So hat sich Ihr Befinden entwickelt</h1></div>
       <button class="btn big" id="showBack">Zurück zur Praxis</button>
     </div>
-    <div class="chart"><h3><span class="sw" style="background:var(--s-phq)"></span>Stimmung (PHQ-9)</h3>
-      <div class="show-now muted">Zuletzt am ${fmtDate(last.ts)}: <span class="num">${lp}</span> von 27 ${sevChip("phq",lp)}</div>
-      <div id="sPhq"></div></div>
-    <div class="chart"><h3><span class="sw" style="background:var(--s-gad)"></span>Angst und Anspannung (GAD-7)</h3>
-      <div class="show-now muted">Zuletzt am ${fmtDate(last.ts)}: <span class="num">${lg}</span> von 21 ${sevChip("gad",lg)}</div>
-      <div id="sGad"></div></div>
-    <p class="muted" style="margin:0">Niedrigere Werte bedeuten weniger Beschwerden.</p>
+    ${scales.map(sc=>{
+      const withScore=es.filter(e=>scoreOf(e,sc.key)!==null), l=withScore[withScore.length-1], v=scoreOf(l,sc.key);
+      return `<div class="chart"><h3><span class="sw" style="background:${sc.color}"></span>${sc.name}${INSTR[sc.instr].subtitle?` · ${INSTR[sc.instr].subtitle}`:""}</h3>
+        <div class="show-now muted">Zuletzt am ${fmtDate(l.ts)}: <span class="num">${v}</span> von ${sc.max} ${sevChip(sc,v)}</div>
+        <div id="s-${sc.key}"></div></div>`;
+    }).join("")}
+    <p class="muted" style="margin:0">Bei WHO-5 bedeuten höhere Werte mehr Wohlbefinden, bei den übrigen Fragebögen bedeuten niedrigere Werte weniger Beschwerden.</p>
   </div>`;
-  drawChart(document.getElementById("sPhq"),es,"phq","var(--s-phq)","PHQ-9",{big:true,clean:true});
-  drawChart(document.getElementById("sGad"),es,"gad","var(--s-gad)","GAD-7",{big:true,clean:true});
+  scales.forEach(sc=>drawChart(document.getElementById("s-"+sc.key),es,sc,{big:true,clean:true}));
   document.getElementById("showBack").onclick=()=>{pinFrom="show";go("pin")};
 }
 
 /* ================= Diagramm ================= */
-function drawChart(host,es,k,color,name,opt={}){
-  const {max,bands}=SEV[k];
-  const W=900,H=opt.big?380:320,L=40,R=112,T=14,B=36;
+function drawChart(host,entries,sc,opt={}){
+  if(!host)return;
+  const es=entries.filter(e=>scoreOf(e,sc.key)!==null);
+  const max=sc.max, bands=sc.bands, n=es.length;
+  const W=900,H=opt.big?380:320,L=44,R=124,T=14,B=36;
   const pw=W-L-R, ph=H-T-B;
   const y=v=>T+ph-(v/max)*ph;
-  const n=es.length;
-  const x=i=>n===1?L+pw/2:L+ (i/(n-1))*pw;
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${name} Verlauf, ${n} Messungen">`;
+  const x=i=>n===1?L+pw/2:L+(i/(n-1))*pw;
+  const nb=bands.length;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${sc.name} Verlauf, ${n} Messungen">`;
   bands.forEach((b,i)=>{
-    const top=i===bands.length-1?max:b[1]+.5, bot=i===0?0:b[0]-.5;
-    s+=`<rect x="${L}" y="${y(top)}" width="${pw}" height="${y(bot)-y(top)}" fill="var(--band${Math.min(i+1,5)+(k==="gad"&&i===3?1:0)})"/>`;
-    s+=`<text class="band-label" x="${L+pw+8}" y="${(y(top)+y(bot))/2+3.5}">${b[2]}</text>`;
+    const top=i===nb-1?max:b[1]+.5, bot=i===0?0:b[0]-.5;
+    const rank = sc.better==="high" ? (nb-1-i) : i;
+    const tint = Math.min(5, Math.max(1, Math.round(1 + rank*(4/Math.max(1,nb-1)))));
+    s+=`<rect x="${L}" y="${y(top)}" width="${pw}" height="${y(bot)-y(top)}" fill="var(--band${tint})"/>`;
+    s+=`<text class="band-label" x="${L+pw+8}" y="${(y(top)+y(bot))/2+4}">${b[2]}</text>`;
   });
   const ticks=[0,...bands.slice(1).map(b=>b[0]),max];
-  ticks.forEach(t=>{s+=`<line class="grid" x1="${L}" x2="${L+pw}" y1="${y(t)}" y2="${y(t)}" stroke-dasharray="${t===0?"":"2 4"}"/><text x="${L-8}" y="${y(t)+4}" text-anchor="end">${t}</text>`});
+  ticks.forEach(t=>{s+=`<line class="grid" x1="${L}" x2="${L+pw}" y1="${y(t)}" y2="${y(t)}" stroke-dasharray="${t===0?"":"2 4"}"/><text x="${L-8}" y="${y(t)+5}" text-anchor="end">${t}</text>`});
   const every=Math.ceil(n/7);
   es.forEach((e,i)=>{ if(i%every===0||i===n-1) s+=`<text x="${x(i)}" y="${H-10}" text-anchor="middle">${fmtShort(e.ts)}</text>`; });
-  const pts=es.map((e,i)=>[x(i),y(sum(e[k]))]);
-  if(n>1) s+=`<path d="${pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join("")}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const pts=es.map((e,i)=>[x(i),y(scoreOf(e,sc.key))]);
+  if(n>1) s+=`<path d="${pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join("")}" fill="none" stroke="${sc.color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
   pts.forEach((p,i)=>{
     const lastPt=i===n-1;
-    s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${lastPt?7:5}" fill="${lastPt?color:"var(--surface)"}" stroke="${lastPt?"var(--surface)":color}" stroke-width="2"/>`;
-    if(!opt.clean&&k==="phq"&&es[i].phq[8]>0) s+=`<circle cx="${p[0]}" cy="${p[1]}" r="11" fill="none" stroke="var(--crit)" stroke-width="1.5" stroke-dasharray="3 2"/>`;
+    s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${lastPt?7:5}" fill="${lastPt?sc.color:"var(--surface)"}" stroke="${lastPt?"var(--surface)":sc.color}" stroke-width="2"/>`;
+    if(!opt.clean&&sc.instr==="phq9"&&flagged(es[i])) s+=`<circle cx="${p[0]}" cy="${p[1]}" r="11" fill="none" stroke="var(--crit)" stroke-width="1.5" stroke-dasharray="3 2"/>`;
   });
-  const lv=sum(es[n-1][k]);
   const lp=pts[n-1];
-  s+=`<text x="${lp[0]}" y="${lp[1]-14}" text-anchor="${n===1?"middle":"end"}" style="fill:var(--ink);font-weight:700;font-size:17px">${lv}</text>`;
+  s+=`<text x="${lp[0]}" y="${lp[1]-14}" text-anchor="${n===1?"middle":"end"}" style="fill:var(--ink);font-weight:700;font-size:17px">${scoreOf(es[n-1],sc.key)}</text>`;
   const hw=n>1?pw/(n-1):pw;
   pts.forEach((p,i)=>{s+=`<rect class="hit" data-i="${i}" x="${p[0]-hw/2}" y="${T}" width="${hw}" height="${ph}" fill="transparent"/>`});
   s+=`</svg>`;
   host.innerHTML=s;
   host.querySelectorAll(".hit").forEach(r=>{
     const show=ev=>{
-      const e=es[+r.dataset.i], v=sum(e[k]);
-      showTip(ev,`<strong>${fmtDate(e.ts)}</strong><br>${name}: <span class="num">${v}</span> ${sevChip(k,v)}${!opt.clean&&k==="phq"&&e.phq[8]>0?`<br><span class="chip flag">Frage 9: ${OPTIONS[e.phq[8]]}</span>`:""}`);
+      const e=es[+r.dataset.i], v=scoreOf(e,sc.key);
+      showTip(ev,`<strong>${fmtDate(e.ts)}</strong><br>${sc.name}: <span class="num">${v}</span> ${sevChip(sc,v)}${!opt.clean&&sc.instr==="phq9"&&flagged(e)?`<br><span class="chip flag">Frage 9: ${INSTR.phq9.options[flagged(e)]}</span>`:""}`);
     };
     r.addEventListener("pointerenter",show);r.addEventListener("pointermove",show);r.addEventListener("pointerdown",show);
     r.addEventListener("pointerleave",hideTip);
@@ -686,9 +821,18 @@ const downloads={save:async({filename,data})=>{
 }};
 
 function csv(){
-  const head=["Kuerzel","Datum","Uhrzeit",...PHQ.map((_,i)=>"PHQ"+(i+1)),"PHQ9_Summe","PHQ9_Schweregrad",...GAD.map((_,i)=>"GAD"+(i+1)),"GAD7_Summe","GAD7_Schweregrad"];
-  const rows=store.entries.slice().sort((a,b)=>a.code.localeCompare(b.code)||a.ts-b.ts).map(e=>[
-    e.code,fmtDate(e.ts),fmtTime(e.ts),...e.phq,sum(e.phq),SEV.phq.bands[sevIndex("phq",sum(e.phq))][2],...e.gad,sum(e.gad),SEV.gad.bands[sevIndex("gad",sum(e.gad))][2]]);
+  const head=["Kuerzel","Datum","Uhrzeit","Quelle","Fragebogen","Skala","Wert","Maximum","Einstufung","Einzelantworten"];
+  const rows=[];
+  store.entries.slice().sort((a,b)=>a.code.localeCompare(b.code)||a.ts-b.ts).forEach(e=>{
+    KEYS.forEach(k=>{
+      const a=e.a&&e.a[k];
+      if(!valid(k,a))return;
+      INSTR[k].scales.forEach(sc=>{
+        const v=sc.calc(a);
+        rows.push([e.code,fmtDate(e.ts),fmtTime(e.ts),e.src==="paper"?"Papier":"Tablet",INSTR[k].name,sc.name,v,sc.max,sc.bands[sevIndex(sc,v)][2],a.join(" ")]);
+      });
+    });
+  });
   return "﻿"+[head,...rows].map(r=>r.join(";")).join("\r\n");
 }
 async function offer(filename,data){
@@ -696,7 +840,7 @@ async function offer(filename,data){
   try{await downloads.save({filename,data});toast("Datei im Download-Ordner gespeichert")}
   catch(err){ if(err&&err.code==="declined")return; toast("Speichern nicht möglich: "+(err&&err.message||"unbekannt")) }
 }
-function stamp(){const d=new Date();return d.toISOString().slice(0,10)}
+function stamp(){return new Date().toISOString().slice(0,10)}
 
 function renderSettings(){
   const body=document.getElementById("body");
@@ -735,10 +879,14 @@ function renderSettings(){
       <h3>Auswertungsregeln</h3>
       <p><strong>PHQ-9</strong> (0–27): 0–4 minimal · 5–9 leicht · 10–14 mittelgradig · 15–19 mittelschwer · 20–27 schwer. Frage 9 wird bei jedem Wert über 0 markiert.</p>
       <p><strong>GAD-7</strong> (0–21): 0–4 minimal · 5–9 leicht · 10–14 mittelgradig · 15–21 schwer.</p>
+      <p><strong>WHO-5</strong> (0–100, Rohwert × 4): 51–100 unauffällig · 29–50 gering, weitere Abklärung sinnvoll · 0–28 sehr gering. Höhere Werte bedeuten mehr Wohlbefinden.</p>
+      <p><strong>SSS-8</strong> (0–32): 0–3 keine bis minimal · 4–7 gering · 8–11 mittel · 12–15 hoch · 16–32 sehr hoch.</p>
+      <p><strong>DASS-21</strong> (je 0–21): auffällig ab 10 (Depression), ab 6 (Angst), ab 10 (Stress).</p>
       <p>Die Werte sind Screening-Hinweise und ersetzen keine Diagnose.</p>
+      <p class="muted" style="font-size:.8rem">${INSTR.dass21.credit}</p>
     </section>
   </div>`;
-  const bk=()=>JSON.stringify({app:"phqgad",version:1,exported:new Date().toISOString(),clients:store.clients,entries:store.entries},null,1);
+  const bk=()=>JSON.stringify({app:"phqgad",version:2,exported:new Date().toISOString(),clients:store.clients,entries:store.entries},null,1);
   document.getElementById("bkText").value=bk();
   document.getElementById("expJson").onclick=()=>offer(`fragebogen-sicherung-${stamp()}.json`,bk());
   document.getElementById("expCsv").onclick=()=>offer(`fragebogen-auswertung-${stamp()}.csv`,csv());
@@ -753,11 +901,13 @@ function renderSettings(){
       const ids=new Set(store.entries.map(e=>e.id));let added=0;
       Object.keys(d.clients||{}).forEach(c=>{if(!store.clients[c])store.clients[c]=d.clients[c]});
       d.entries.forEach(e=>{
-        if(ids.has(e.id)||!Array.isArray(e.phq)||e.phq.length!==9||!Array.isArray(e.gad)||e.gad.length!==7)return;
-        if(!store.clients[e.code])store.clients[e.code]={created:e.ts};
+        if(ids.has(e.id))return;
+        if(!e.a){e.a={}; if(e.phq)e.a.phq9=e.phq; if(e.gad)e.a.gad7=e.gad; delete e.phq; delete e.gad;}
+        if(!Object.keys(e.a).some(k=>valid(k,e.a[k])))return;
+        if(!store.clients[e.code])store.clients[e.code]={created:e.ts,tests:["phq9","gad7"]};
         store.entries.push(e);added++;
       });
-      save();toast(`${added} Befragung(en) übernommen`);renderSettings();
+      migrate();save();toast(`${added} Befragung(en) übernommen`);renderSettings();
     }catch(e){toast("Das ist keine gültige Sicherungsdatei.")}
   };
   document.getElementById("impFile").onchange=ev=>{const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>doImport(r.result);r.readAsText(f)};
