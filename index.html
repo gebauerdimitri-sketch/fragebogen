@@ -102,6 +102,22 @@ h1,h2,h3{text-wrap:balance;margin:0;line-height:1.2}
 .answer[aria-pressed="true"] .dot{border-color:var(--accent);background:var(--accent)}
 .answer[aria-pressed="true"] .dot::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--accent-ink)}
 .q-nav{display:flex;justify-content:space-between;gap:12px}
+.intro{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:18px;padding-block:40px}
+.intro .step{font-size:.85rem;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
+.intro h1{font-size:clamp(2.2rem,7vw,3.6rem);color:var(--brand)}
+.intro p{margin:0;font-size:1.1rem;color:var(--ink-2);max-width:26em}
+.intro .dots{display:flex;gap:8px}
+.intro .dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.intro .dots i.on{background:var(--accent)}
+.intro .dots i.done{background:var(--accent-soft)}
+.rise{animation:rise .5s cubic-bezier(.2,.7,.3,1) both}
+.rise2{animation:rise .5s cubic-bezier(.2,.7,.3,1) .12s both}
+.rise3{animation:rise .5s cubic-bezier(.2,.7,.3,1) .24s both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.introbar{width:min(320px,70vw);height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.introbar i{display:block;height:100%;width:0;background:var(--accent);animation:grow var(--dur,2s) linear both}
+@keyframes grow{to{width:100%}}
+@media (prefers-reduced-motion:reduce){.rise,.rise2,.rise3,.introbar i{animation:none}.introbar i{width:100%}}
 .thanks{text-align:center;align-items:center}
 .thanks .check{width:88px;height:88px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center}
 .thanks h1{font-size:clamp(2rem,5vw,2.6rem)}
@@ -251,7 +267,7 @@ const BANDS_F = [[0,5,"unauffällig"],[6,8,"grenzwertig"],[9,12,"auffällig"]];
 /* ================= Fragebögen ================= */
 const INSTR = {
   phq9:{
-    name:"PHQ-9", subtitle:"Depression", options:OPT_PHQ,
+    name:"PHQ-9", subtitle:"Depression", clientLabel:"Stimmung", options:OPT_PHQ,
     stem:"Wie oft fühlten Sie sich im Verlauf der letzten 2 Wochen durch die folgenden Beschwerden beeinträchtigt?",
     items:[
       "Wenig Interesse oder Freude an Ihren Tätigkeiten",
@@ -270,7 +286,7 @@ const INSTR = {
       calc:a=>a.reduce((s,x)=>s+x,0)}]
   },
   gad7:{
-    name:"GAD-7", subtitle:"Angst", options:OPT_PHQ,
+    name:"GAD-7", subtitle:"Angst", clientLabel:"Angst", options:OPT_PHQ,
     stem:"Wie oft fühlten Sie sich im Verlauf der letzten 2 Wochen durch die folgenden Beschwerden beeinträchtigt?",
     items:[
       "Nervosität, Ängstlichkeit oder Anspannung",
@@ -286,7 +302,7 @@ const INSTR = {
       calc:a=>a.reduce((s,x)=>s+x,0)}]
   },
   who5:{
-    name:"WHO-5", subtitle:"Wohlbefinden", options:OPT_WHO,
+    name:"WHO-5", subtitle:"Wohlbefinden", clientLabel:"Wohlbefinden", options:OPT_WHO,
     stem:"Bitte geben Sie für jede der fünf Aussagen an, was für Ihr Befinden während der letzten zwei Wochen am ehesten zutrifft.",
     items:[
       "In den letzten zwei Wochen war ich froh und guter Laune",
@@ -301,7 +317,7 @@ const INSTR = {
       calc:a=>a.reduce((s,x)=>s+x,0)*4}]
   },
   sss8:{
-    name:"SSS-8", subtitle:"Körperbeschwerden", options:OPT_SSS,
+    name:"SSS-8", subtitle:"Körperbeschwerden", clientLabel:"Körperbeschwerden", options:OPT_SSS,
     stem:"Wie stark fühlten Sie sich während der letzten 7 Tage durch die folgenden Beschwerden beeinträchtigt?",
     items:[
       "Magen- oder Darmbeschwerden",
@@ -318,7 +334,7 @@ const INSTR = {
       calc:a=>a.reduce((s,x)=>s+x,0)}]
   },
   dass21:{
-    name:"DASS-21", subtitle:"Depression, Angst, Stress", options:OPT_DASS,
+    name:"DASS-21", subtitle:"Depression, Angst, Stress", clientLabel:"Stimmung, Angst und Anspannung", options:OPT_DASS,
     stem:"Bitte geben Sie an, wie sehr die Aussage während der letzten Woche auf Sie zutraf.",
     items:[
       "Ich fand es schwer, mich zu beruhigen.",
@@ -354,7 +370,7 @@ const INSTR = {
     ]
   }  ,
   sbA:{
-    name:"Depressionsinventar", subtitle:"Depression", options:OPT_SBA, base:0, unvalidated:true,
+    name:"Depressionsinventar", subtitle:"Depression", clientLabel:"Stimmung", options:OPT_SBA, base:0, unvalidated:true,
     stem:"Wie sehr trifft die Aussage auf die vergangenen 14 Tage zu, heute eingeschlossen?",
     items:[
       "Ich fühle mich niedergeschlagen und bedrückt.",
@@ -384,7 +400,7 @@ const INSTR = {
       calc:a=>a.reduce((s,x)=>s+x,0)}]
   },
   sbB:{
-    name:"Angstgedanken (B)", subtitle:"Angst", options:OPT_SBB, base:1, unvalidated:true,
+    name:"Angstgedanken (B)", subtitle:"Angst", clientLabel:"Gedanken bei Angst", options:OPT_SBB, base:1, unvalidated:true,
     stem:"Wie häufig kommt Ihnen dieser Gedanke, wenn Sie angespannt oder ängstlich sind?",
     items:[
       "Gleich verliere ich die Kontrolle über mich.",
@@ -406,7 +422,7 @@ const INSTR = {
       calc:a=>a.reduce((s,x)=>s+x,0)}]
   },
   sbC:{
-    name:"Körperempfindungen (C)", subtitle:"Angst", options:OPT_SBC, base:1, unvalidated:true,
+    name:"Körperempfindungen (C)", subtitle:"Angst", clientLabel:"Körperempfindungen", options:OPT_SBC, base:1, unvalidated:true,
     stem:"Wie stark beunruhigt oder ängstigt Sie diese Körperempfindung, wenn sie auftritt?",
     items:[
       "Schwindel oder Benommenheit",
@@ -431,7 +447,7 @@ const INSTR = {
       calc:a=>a.reduce((s,x)=>s+x,0)}]
   }  ,
   fbm36:{
-    name:"FBM-36", subtitle:"Beziehungsmotive", options:OPT_FBM, base:0, unvalidated:true, profile:"fbm",
+    name:"FBM-36", subtitle:"Beziehungsmotive", clientLabel:"Beziehungen", options:OPT_FBM, base:0, unvalidated:true, profile:"fbm",
     stem:"Gemeint sind alle für Sie wichtigen Beziehungen, z. B. zu Partnerin oder Partner, Familie, Freundinnen und Freunden oder Kolleginnen und Kollegen. Wie geht es Ihnen im Allgemeinen?",
     items:[
       "Es ist mir sehr wichtig, dass Menschen, die mir nahestehen, mich mögen und schätzen.",
@@ -487,7 +503,7 @@ const INSTR = {
     ]
   }  ,
   oci12:{
-    name:"OCI-12", subtitle:"Zwang", options:["Überhaupt nicht","Ein wenig","Mäßig","Stark","Extrem"], base:0,
+    name:"OCI-12", subtitle:"Zwang", clientLabel:"Wiederkehrende Gedanken und Gewohnheiten", options:["Überhaupt nicht","Ein wenig","Mäßig","Stark","Extrem"], base:0,
     stem:"Wie sehr hat diese Erfahrung im letzten Monat bei Ihnen Unbehagen ausgelöst oder Sie belastet?",
     items:[
       "Ich kontrolliere Dinge öfter als nötig.",
@@ -554,7 +570,7 @@ function defToInstr(d){
   const opts=d.options, top=opts.length-1, inv=d.inverse||[];
   const val=(a,i)=>inv.includes(i)?top-a[i]:a[i];
   const ins={
-    name:d.name, subtitle:d.subtitle||"", options:opts, base:d.base||0, stem:d.stem,
+    name:d.name, subtitle:d.subtitle||"", clientLabel:d.clientLabel||d.subtitle||d.name, options:opts, base:d.base||0, stem:d.stem,
     items:d.items, credit:d.credit||"", custom:true, unvalidated:!!d.unvalidated,
     flag:d.flag||null,
     scales:(d.scales||[{key:d.key,name:d.name,axis:"Summenwert",max:top*d.items.length}]).map(sc=>{
@@ -703,14 +719,34 @@ function renderStart(){
     const steps=[];
     tests.forEach(k=>INSTR[k].items.forEach((t,i)=>steps.push({k,i,t})));
     const answers={}; tests.forEach(k=>answers[k]=Array(INSTR[k].items.length).fill(null));
-    quiz={code,tests,steps,step:0,answers};
+    quiz={code,tests,steps,step:0,answers,introFor:tests[0]};
     go("quiz");
   };
   document.getElementById("toPraxis").onclick=()=>go("pin");
   document.getElementById("fsBtn").onclick=toggleFs;
 }
 
+function renderIntro(){
+  const k=quiz.introFor, ins=INSTR[k], idx=quiz.tests.indexOf(k), n=quiz.tests.length;
+  const dur=2200;
+  app.innerHTML=`<div class="kiosk">
+    <div class="kiosk-top">${brand}<button class="btn ghost" id="cancel">Abbrechen</button></div>
+    <main class="kiosk-main intro">
+      <span class="step rise">Teil ${idx+1} von ${n}</span>
+      <h1 class="rise2">${esc(ins.clientLabel||ins.subtitle||ins.name)}</h1>
+      <p class="rise3">${idx===0?"Es geht los. Bitte antworten Sie möglichst spontan.":"Jetzt folgen Fragen zu einem anderen Bereich."} ${ins.items.length} ${ins.items.length===1?"Frage":"Fragen"}.</p>
+      <div class="dots rise3" aria-hidden="true">${quiz.tests.map((t,i)=>`<i class="${i<idx?"done":i===idx?"on":""}"></i>`).join("")}</div>
+      <div class="introbar rise3" style="--dur:${dur}ms" aria-hidden="true"><i></i></div>
+      <button class="btn big" id="introGo">Weiter</button>
+    </main></div>`;
+  const go2=()=>{clearTimeout(quiz&&quiz._t);if(view==="quiz"&&quiz&&quiz.introFor===k){quiz.introFor=null;render()}};
+  quiz._t=setTimeout(go2,dur);
+  document.getElementById("introGo").onclick=go2;
+  document.getElementById("cancel").onclick=()=>{clearTimeout(quiz&&quiz._t);quiz=null;go("start")};
+}
+
 function renderQuiz(){
+  if(quiz.introFor) return renderIntro();
   const s=quiz.steps[quiz.step], ins=INSTR[s.k];
   const cur=quiz.answers[s.k][s.i];
   const tIdx=quiz.tests.indexOf(s.k);
@@ -735,11 +771,11 @@ function renderQuiz(){
     quiz.answers[s.k][s.i]=+b.dataset.v;
     app.querySelectorAll(".answer").forEach(x=>x.setAttribute("aria-pressed",x===b));
     document.getElementById("next").disabled=false;
-    if(quiz.step<quiz.steps.length-1){const st=quiz.step;setTimeout(()=>{if(view==="quiz"&&quiz&&quiz.step===st){quiz.step++;render()}},320)}
+    if(quiz.step<quiz.steps.length-1){const st=quiz.step;setTimeout(()=>{if(view==="quiz"&&quiz&&quiz.step===st){advance()}},320)}
   });
   document.getElementById("back").onclick=()=>{quiz.step--;render()};
   document.getElementById("next").onclick=()=>{
-    if(quiz.step<quiz.steps.length-1){quiz.step++;render();return}
+    if(quiz.step<quiz.steps.length-1){advance();return}
     const miss=quiz.steps.findIndex(x=>quiz.answers[x.k][x.i]===null);
     if(miss>=0){quiz.step=miss;render();return}
     const a={}; quiz.tests.forEach(k=>a[k]=quiz.answers[k].slice());
@@ -747,6 +783,13 @@ function renderQuiz(){
     save();quiz=null;go("thanks");
   };
   document.getElementById("cancel").onclick=()=>{quiz=null;go("start")};
+}
+
+function advance(){
+  const cur=quiz.steps[quiz.step], nxt=quiz.steps[quiz.step+1];
+  quiz.step++;
+  if(nxt && nxt.k!==cur.k) quiz.introFor=nxt.k;
+  render();
 }
 
 function renderThanks(){
