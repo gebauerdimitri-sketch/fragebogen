@@ -485,6 +485,28 @@ const INSTR = {
       {key:"fbmG_auton",name:"Autonomie (G)",axis:"Gesamtwert 0–24",max:24,better:"low",hide:true,bands:BANDS_G,calc:a=>fbmG(a,"auton")},
       {key:"fbmF_auton",name:"Autonomie (F)",axis:"Frustration 0–12",max:12,better:"low",hide:true,bands:BANDS_F,calc:a=>fbmF(a,"auton")}
     ]
+  }  ,
+  oci12:{
+    name:"OCI-12", subtitle:"Zwang", options:["Überhaupt nicht","Ein wenig","Mäßig","Stark","Extrem"], base:0,
+    stem:"Wie sehr hat diese Erfahrung im letzten Monat bei Ihnen Unbehagen ausgelöst oder Sie belastet?",
+    items:[
+      "Ich kontrolliere Dinge öfter als nötig.",
+      "Es stört mich, wenn Gegenstände nicht richtig angeordnet sind.",
+      "Es fällt mir schwer, einen Gegenstand zu berühren, wenn ich weiß, dass er von fremden oder bestimmten Personen berührt wurde.",
+      "Es fällt mir schwer, meine eigenen Gedanken zu kontrollieren.",
+      "Ich kontrolliere immer wieder Türen, Fenster, Schubladen usw.",
+      "Es belastet mich, wenn andere etwas daran ändern, wie ich die Dinge angeordnet habe.",
+      "Manchmal muss ich mich waschen oder reinigen, einfach weil ich mich kontaminiert/beschmutzt fühle.",
+      "Mich belasten unangenehme Gedanken, die mir gegen meinen Willen in den Sinn kommen.",
+      "Ich kontrolliere immer wieder Gas- und Wasserhähne und Lichtschalter, nachdem ich sie abgedreht/ausgeschaltet habe.",
+      "Für mich müssen Dinge in einer bestimmten Art und Weise angeordnet sein.",
+      "Ich wasche mir die Hände öfter und länger als nötig.",
+      "Ich habe oft schlechte Gedanken und habe Schwierigkeiten, sie loszuwerden."
+    ],
+    credit:"OCI-12, deutsche Fassung: Müller et al. (2024), Universität Würzburg – CC BY-NC-ND 4.0",
+    scales:[{key:"oci12",name:"OCI-12",axis:"Summenwert 0–48",max:48,better:"low",
+      bands:[[0,10,"unauffällig"],[11,16,"auffällig"],[17,48,"deutlich auffällig"]],
+      calc:a=>a.reduce((s,x)=>s+x,0)}]
   }
 };
 const FBM_INV=[26,22,33,8,35,15];
@@ -501,11 +523,19 @@ const fbmM=k=>FBM_MOT.find(m=>m.key===k);
 function fbmG(a,k){const m=fbmM(k);return m.wish.reduce((s,i)=>s+fbmVal(a,i),0)+m.frust.reduce((s,i)=>s+a[i],0)}
 function fbmF(a,k){return fbmM(k).frust.reduce((s,i)=>s+a[i],0)}
 
-const KEYS = Object.keys(INSTR);
-Object.values(INSTR).forEach(ins=>ins.scales.forEach(sc=>{ if(!sc.calc) sc.calc = a => sc.idx.reduce((s,i)=>s+a[i],0); if(sc.min==null) sc.min=0; }));
-const COLOR = {phq9:"var(--s1)",gad7:"var(--s2)",who5:"var(--s3)",sss8:"var(--s4)",dassD:"var(--s1)",dassA:"var(--s2)",dassS:"var(--s3)",sbA:"var(--s4)",sbB:"var(--s2)",sbC:"var(--s3)"};
-const SCALE = {};
-KEYS.forEach(k=>INSTR[k].scales.forEach(sc=>{SCALE[sc.key]=Object.assign({instr:k,color:COLOR[sc.key]||"var(--s1)"},sc)}));
+const COLOR = {phq9:"var(--s1)",gad7:"var(--s2)",who5:"var(--s3)",sss8:"var(--s4)",dassD:"var(--s1)",dassA:"var(--s2)",dassS:"var(--s3)",sbA:"var(--s4)",sbB:"var(--s2)",sbC:"var(--s3)",oci12:"var(--s1)"};
+let KEYS=[], SCALE={}, FLAGS=[];
+function rebuildRegistry(){
+  KEYS = Object.keys(INSTR);
+  SCALE = {};
+  KEYS.forEach((k,ki)=>INSTR[k].scales.forEach((sc,si)=>{
+    if(!sc.calc) sc.calc = a => sc.idx.reduce((s,i)=>s+a[i],0);
+    if(sc.min==null) sc.min=0;
+    SCALE[sc.key]=Object.assign({instr:k,color:COLOR[sc.key]||`var(--s${(ki+si)%4+1})`},sc);
+  }));
+  FLAGS = KEYS.filter(k=>INSTR[k].flag);
+}
+rebuildRegistry();
 const scalesOf = k => INSTR[k].scales;
 const sum = a => a.reduce((s,x)=>s+x,0);
 
@@ -517,6 +547,39 @@ function sevChip(sc,v){
   let rank = sc.better==="high" ? (n-1-i) : i;           // 0 = günstig
   const cls = ["sev0","sev2","sev3","sev4","sev4"][Math.min(rank* (n<=3?2:1),4)];
   return `<span class="chip ${cls}">${label}</span>`;
+}
+
+/* ================= Zusatzbögen (lokal geladen) ================= */
+function defToInstr(d){
+  const opts=d.options, top=opts.length-1, inv=d.inverse||[];
+  const val=(a,i)=>inv.includes(i)?top-a[i]:a[i];
+  const ins={
+    name:d.name, subtitle:d.subtitle||"", options:opts, base:d.base||0, stem:d.stem,
+    items:d.items, credit:d.credit||"", custom:true, unvalidated:!!d.unvalidated,
+    flag:d.flag||null,
+    scales:(d.scales||[{key:d.key,name:d.name,axis:"Summenwert",max:top*d.items.length}]).map(sc=>{
+      const idx = Array.isArray(sc.items)? sc.items : d.items.map((_,i)=>i);
+      const factor = sc.factor||1, offset = sc.offset||0;
+      return {key:sc.key,name:sc.name,axis:sc.axis||"Summenwert",min:sc.min||0,max:sc.max,
+        better:sc.better||"low",bands:sc.bands||null,hide:!!sc.hide,
+        calc:a=>idx.reduce((s,i)=>s+val(a,i),0)*factor+offset};
+    })
+  };
+  return ins;
+}
+function registerCustom(){
+  Object.keys(INSTR).forEach(k=>{ if(INSTR[k].custom) delete INSTR[k]; });
+  Object.entries(store.custom||{}).forEach(([k,d])=>{ try{ INSTR[k]=defToInstr(d) }catch(e){} });
+  rebuildRegistry();
+}
+function checkDef(d){
+  if(!d||typeof d!=="object") return "Datei nicht lesbar";
+  if(!d.key||!/^[a-z0-9_]{2,20}$/i.test(d.key)) return "Ungültiges Kürzel (key)";
+  if(INSTR[d.key]&&!(store.custom||{})[d.key]) return `Das Kürzel „${d.key}“ ist bereits vergeben`;
+  if(!d.name||!Array.isArray(d.items)||!d.items.length) return "Name oder Items fehlen";
+  if(!Array.isArray(d.options)||d.options.length<2) return "Antwortstufen fehlen";
+  if(!d.stem) return "Instruktion (stem) fehlt";
+  return null;
 }
 
 /* ================= Speicher ================= */
@@ -533,9 +596,9 @@ function load(){
   try{
     const raw=localStorage.getItem(KEY);
     if(raw) store=Object.assign(store,JSON.parse(raw)); else seedDemo();
-    migrate();
+    migrate();registerCustom();
     if(!raw) save();
-  }catch(e){storageOk=false;seedDemo();migrate()}
+  }catch(e){storageOk=false;seedDemo();migrate();registerCustom()}
 }
 function save(){
   try{localStorage.setItem(KEY,JSON.stringify(store));storageOk=true;return true}
@@ -560,7 +623,6 @@ const normCode=s=>s.toUpperCase().replace(/[^A-Z0-9ÄÖÜ-]/g,"").slice(0,12);
 const testsOf = code => (store.clients[code]&&store.clients[code].tests||[]).filter(k=>INSTR[k]);
 const valid = (k,a) => Array.isArray(a) && a.length===INSTR[k].items.length && a.every(v=>Number.isInteger(v)&&v>=0&&v<INSTR[k].options.length);
 const scoreOf = (e,scKey) => { const sc=SCALE[scKey], a=e.a&&e.a[sc.instr]; return valid(sc.instr,a)? sc.calc(a) : null; };
-const FLAGS = KEYS.filter(k=>INSTR[k].flag);
 const flagsIn = e => FLAGS.map(k=>{
   const a=e.a&&e.a[k], f=INSTR[k].flag;
   return valid(k,a)&&a[f.item]>0 ? {instr:k,value:a[f.item],label:`${INSTR[k].name} ${f.label}`,text:`${INSTR[k].name} ${f.text}`,answer:INSTR[k].options[a[f.item]]} : null;
@@ -1109,6 +1171,12 @@ function renderSettings(){
       </details>
     </section>
     <section>
+      <h3>Zusatzbögen laden</h3>
+      <p>Fragebögen, die nicht fest eingebaut sind, lassen sich hier als Paket-Datei (.json) laden. Sie bleiben nur auf diesem Tablet gespeichert.</p>
+      <input type="file" id="cusFile" accept=".json,application/json" class="field">
+      <div id="cusList"></div>
+    </section>
+    <section>
       <h3>PIN ändern</h3>
       <form id="pinChange" class="row" autocomplete="off">
         <input class="field" id="pinOld" type="password" inputmode="numeric" placeholder="alte PIN" aria-label="Alte PIN" style="width:120px">
@@ -1131,7 +1199,7 @@ function renderSettings(){
       <p class="muted" style="font-size:.8rem">${INSTR.dass21.credit}</p>
     </section>
   </div>`;
-  const bk=()=>JSON.stringify({app:"phqgad",version:2,exported:new Date().toISOString(),clients:store.clients,entries:store.entries},null,1);
+  const bk=()=>JSON.stringify({app:"phqgad",version:3,exported:new Date().toISOString(),clients:store.clients,entries:store.entries,custom:store.custom||{}},null,1);
   document.getElementById("bkText").value=bk();
   document.getElementById("expJson").onclick=()=>offer(`fragebogen-sicherung-${stamp()}.json`,bk());
   document.getElementById("expCsv").onclick=()=>offer(`fragebogen-auswertung-${stamp()}.csv`,csv());
@@ -1144,6 +1212,7 @@ function renderSettings(){
       const d=JSON.parse(txt);
       if(!d||d.app!=="phqgad"||!Array.isArray(d.entries))throw 0;
       const ids=new Set(store.entries.map(e=>e.id));let added=0;
+      store.custom=Object.assign(store.custom||{},d.custom||{});registerCustom();
       Object.keys(d.clients||{}).forEach(c=>{if(!store.clients[c])store.clients[c]=d.clients[c]});
       d.entries.forEach(e=>{
         if(ids.has(e.id))return;
@@ -1156,6 +1225,32 @@ function renderSettings(){
     }catch(e){toast("Das ist keine gültige Sicherungsdatei.")}
   };
   document.getElementById("impFile").onchange=ev=>{const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>doImport(r.result);r.readAsText(f)};
+  const cusList=document.getElementById("cusList");
+  const drawCus=()=>{
+    const cs=Object.entries(store.custom||{});
+    cusList.innerHTML = cs.length
+      ? `<div class="checks" style="margin-top:4px">${cs.map(([k,d])=>`<label style="cursor:default">${esc(d.name)} <span class="muted">${d.items.length} Fragen</span> <button class="btn ghost danger" data-cus="${esc(k)}" style="min-height:28px;padding:0 6px">entfernen</button></label>`).join("")}</div>`
+      : `<p class="muted" style="margin:0;font-size:.85rem">Keine Zusatzbögen geladen.</p>`;
+    cusList.querySelectorAll("[data-cus]").forEach(b=>b.onclick=()=>{
+      const k=b.dataset.cus;
+      if(store.entries.some(e=>e.a&&e.a[k])){toast("Zu diesem Bogen liegen Antworten vor – erst die Befragungen löschen");return}
+      delete store.custom[k];save();registerCustom();toast("Zusatzbogen entfernt");renderSettings();
+    });
+  };
+  drawCus();
+  document.getElementById("cusFile").onchange=ev=>{
+    const f=ev.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=()=>{
+      let d;try{d=JSON.parse(r.result)}catch(e){toast("Die Datei ist kein gültiges JSON");return}
+      const list=Array.isArray(d)?d:[d];
+      let added=0,err=null;
+      list.forEach(def=>{const e=checkDef(def); if(e){err=err||e;return} store.custom=store.custom||{}; store.custom[def.key]=def; added++;});
+      if(added){save();registerCustom();toast(`${added} Zusatzbogen/-bögen geladen`);renderSettings()}
+      else toast(err||"Kein Fragebogen in der Datei gefunden");
+    };
+    r.readAsText(f);
+  };
   document.getElementById("impGo").onclick=()=>doImport(document.getElementById("impText").value);
   document.getElementById("pinChange").onsubmit=async e=>{
     e.preventDefault();
