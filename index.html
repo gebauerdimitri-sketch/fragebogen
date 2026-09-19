@@ -658,6 +658,7 @@ const app=document.getElementById("app");
 let view="start";
 let quiz=null;
 let pinFrom="start";
+let showSel=null;
 let praxisTab="clients", selected=null, idleTimer=null, thanksTimer=null;
 
 function toast(t){const el=document.getElementById("toast");el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2600)}
@@ -728,7 +729,7 @@ function renderStart(){
 
 function renderIntro(){
   const k=quiz.introFor, ins=INSTR[k], idx=quiz.tests.indexOf(k), n=quiz.tests.length;
-  const dur=6200;
+  const dur=8200;
   app.innerHTML=`<div class="kiosk">
     <div class="kiosk-top">${brand}<button class="btn ghost" id="cancel">Abbrechen</button></div>
     <main class="kiosk-main intro">
@@ -891,7 +892,7 @@ function renderClients(){
     if(store.clients[c]){toast("Kürzel "+c+" existiert bereits");return}
     store.clients[c]={created:Date.now(),tests:["phq9","gad7"]};save();selected=c;toast("Kürzel "+c+" angelegt");renderClients();
   };
-  body.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{selected=b.dataset.c;renderClients()});
+  body.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{selected=b.dataset.c;showSel=null;renderClients()});
   renderDetail();
 }
 
@@ -1003,8 +1004,8 @@ function fbmBlock(es){
     <p class="fbm-note">Die Grenzwerte sind vorläufig und inhaltlich festgelegt, nicht an einer Stichprobe ermittelt. Ein Motiv gilt als auffällig bei G ≥ 20 (A), F ≥ 9 (B), mindestens zwei Frustrationsitems mit 4 (C) oder G mindestens 5 Punkte über dem eigenen Mittelwert (D).</p>
   </div>`;
 }
-function drawFbmTrend(es){
-  const host=document.getElementById("c-fbm"); if(!host)return;
+function drawFbmTrend(es,hostId){
+  const host=document.getElementById(hostId||"c-fbm"); if(!host)return;
   const fe=fbmEntries(es), n=fe.length, max=24;
   const W=900,H=340,L=40,R=24,T=14,B=34, pw=W-L-R, ph=H-T-B;
   const y=v=>T+ph-(v/max)*ph, x=i=>n===1?L+pw/2:L+(i/(n-1))*pw;
@@ -1078,26 +1079,62 @@ function renderPaper(instrKey){
 }
 
 /* ================= Ansicht für Klienten ================= */
+function showItems(es){
+  const items=usedScales(es).map(sc=>({type:"scale",key:sc.key,name:sc.name,sc}));
+  if(fbmEntries(es).length) items.push({type:"fbm",key:"fbm",name:"Beziehungsmotive"});
+  return items;
+}
+function fbmShowBlock(es){
+  const fe=fbmEntries(es), last=fe[fe.length-1], rows=fbmRows(last), mean=rows[0].mean;
+  return `<div class="chart">
+    <h3><span class="sw" style="background:var(--s1)"></span>Beziehungsmotive</h3>
+    <div class="show-now muted">Stand ${fmtDate(last.ts)}: Wie wichtig Ihnen die einzelnen Bereiche in Beziehungen sind</div>
+    <div class="fbm-grid" style="margin-top:10px">
+      ${rows.map(r=>`<div class="fbm-row">
+        <span class="fbm-name">${r.m.name}<small>${r.m.def}</small></span>
+        <div class="mbar"><i style="width:${(r.G/24*100).toFixed(1)}%;background:${r.G>=mean+5?"var(--s2)":"var(--s1)"}"></i><b style="left:${(mean/24*100).toFixed(1)}%"></b><span>${r.G}</span></div>
+        <span class="fbm-tags"><span class="chip sev0" style="background:var(--surface-2);color:var(--ink-2)">von 24</span></span>
+      </div>`).join("")}
+    </div>
+    <p class="fbm-note" style="margin-top:10px">Der graue Strich zeigt Ihren persönlichen Durchschnitt. Orange hebt Bereiche hervor, die für Sie deutlich über diesem Durchschnitt liegen.</p>
+    ${fe.length>1?`<div style="margin-top:16px"><h3 style="font-size:1.05rem">Wie sich das entwickelt hat</h3><div id="s-fbm-trend"></div>
+      <div class="legend">${FBM_MOT.map((m,i)=>`<span><i style="background:var(--s${i%4+1});${i>3?"opacity:.55":""}"></i>${m.name}</span>`).join("")}</div></div>`:""}
+  </div>`;
+}
 function renderShow(){
   const es=entriesOf(selected), last=es[es.length-1];
   if(!last){go("praxis");return}
-  const scales=usedScales(es);
+  const items=showItems(es);
+  if(!showSel) showSel=new Set(items.map(i=>i.key));
+  const sel=items.filter(i=>showSel.has(i.key));
   app.innerHTML=`<div class="show">
     <div class="bar">
       <div><span class="eyebrow">Ihr Verlauf · ${esc(selected)}</span><h1 style="font-size:clamp(1.6rem,4vw,2.4rem)">So hat sich Ihr Befinden entwickelt</h1></div>
       <button class="btn big" id="showBack">Zurück zur Praxis</button>
     </div>
-    ${scales.map(sc=>{
-      const withScore=es.filter(e=>scoreOf(e,sc.key)!==null), l=withScore[withScore.length-1], v=scoreOf(l,sc.key);
+    ${items.length>1?`<div>
+      <span class="eyebrow">Anzeigen</span>
+      <div class="checks" id="showPick" style="margin-top:6px">
+        ${items.map(i=>`<label><input type="checkbox" value="${i.key}" ${showSel.has(i.key)?"checked":""}>${esc(i.name)}</label>`).join("")}
+      </div></div>`:""}
+    ${sel.length?sel.map(i=>{
+      if(i.type==="fbm") return fbmShowBlock(es);
+      const sc=i.sc, withScore=es.filter(e=>scoreOf(e,sc.key)!==null), l=withScore[withScore.length-1], v=scoreOf(l,sc.key);
       return `<div class="chart"><h3><span class="sw" style="background:${sc.color}"></span>${sc.name}${INSTR[sc.instr].subtitle?` · ${INSTR[sc.instr].subtitle}`:""}</h3>
         <div class="show-now muted">Zuletzt am ${fmtDate(l.ts)}: <span class="num">${v}</span> von ${sc.max} ${sevChip(sc,v)}</div>
         <div id="s-${sc.key}"></div></div>`;
-    }).join("")}
-    ${scales.some(sc=>INSTR[sc.instr].unvalidated)?`<p class="muted" style="margin:0">Beim Depressionsinventar sowie den Bögen B und C sind die Einstufungen praxisintern festgelegt. Hier zählt vor allem der Vergleich mit Ihren eigenen früheren Werten.</p>`:""}
-    <p class="muted" style="margin:0">Bei WHO-5 bedeuten höhere Werte mehr Wohlbefinden, bei den übrigen Fragebögen bedeuten niedrigere Werte weniger Beschwerden.</p>
+    }).join(""):`<p class="muted">Bitte oben mindestens einen Fragebogen auswählen.</p>`}
+    ${sel.some(i=>i.type==="scale"&&INSTR[i.sc.instr].unvalidated)?`<p class="muted" style="margin:0">Beim Depressionsinventar sowie den Bögen B und C sind die Einstufungen praxisintern festgelegt. Hier zählt vor allem der Vergleich mit Ihren eigenen früheren Werten.</p>`:""}
+    ${sel.some(i=>i.type==="scale")?`<p class="muted" style="margin:0">Bei WHO-5 bedeuten höhere Werte mehr Wohlbefinden, bei den übrigen Fragebögen bedeuten niedrigere Werte weniger Beschwerden.</p>`:""}
   </div>`;
-  scales.forEach(sc=>drawChart(document.getElementById("s-"+sc.key),es,sc,{big:true,clean:true}));
-  document.getElementById("showBack").onclick=()=>{pinFrom="show";go("pin")};
+  sel.forEach(i=>{ if(i.type==="scale") drawChart(document.getElementById("s-"+i.key),es,i.sc,{big:true,clean:true}); });
+  if(showSel.has("fbm")) drawFbmTrend(es,"s-fbm-trend");
+  const pick=document.getElementById("showPick");
+  if(pick) pick.onchange=()=>{
+    showSel=new Set([...pick.querySelectorAll("input:checked")].map(i=>i.value));
+    renderShow();window.scrollTo(0,0);
+  };
+  document.getElementById("showBack").onclick=()=>{pinFrom="show";showSel=null;go("pin")};
 }
 
 /* ================= Diagramm ================= */
