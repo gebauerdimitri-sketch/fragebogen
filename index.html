@@ -208,7 +208,7 @@ td.items{font-family:var(--mono);font-size:.82rem;color:var(--ink-2)}
 .pe-row .n{font-family:var(--mono);color:var(--ink-3)}
 .pe-row .t{font-size:.95rem}
 .seg{display:flex;gap:4px}
-.seg button{width:48px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-family:var(--mono);font-size:1.05rem}
+.seg button{min-width:48px;padding:0 6px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-family:var(--mono);font-size:1.05rem}
 .seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .pe-row.missing{background:var(--crit-bg);border-radius:8px}
 .pe-row.missing .n{color:var(--crit-ink);font-weight:700}
@@ -263,6 +263,11 @@ const OPT_DASS = ["Traf gar nicht auf mich zu","Traf bis zu einem gewissen Grad 
 const OPT_FBM = ["Trifft gar nicht zu","Trifft kaum zu","Trifft teilweise zu","Trifft überwiegend zu","Trifft völlig zu"];
 const BANDS_G = [[0,11,"niedrig"],[12,16,"mittel"],[17,19,"erhöht"],[20,24,"auffällig"]];
 const BANDS_F = [[0,5,"unauffällig"],[6,8,"grenzwertig"],[9,12,"auffällig"]];
+
+const SAA_U=[0,2,4,6,8,10,12,14,16], SAA_H=[1,3,5,7,9,11,13,15,17], SAA_ALL=[...Array(18).keys()];
+const SAA_KS=[1,6,8,10,11,16];
+const SAA_THR={0:3,2:3,4:2,6:2,8:2,10:3,12:3,14:3,16:2,1:3,3:3,5:2,7:3,9:2,11:3,13:2,15:3,17:3};
+const SAA_Z=[18,19,20];
 
 /* ================= Fragebögen ================= */
 const INSTR = {
@@ -523,6 +528,50 @@ const INSTR = {
     scales:[{key:"oci12",name:"OCI-12",axis:"Summenwert 0–48",max:48,better:"low",
       bands:[[0,10,"unauffällig"],[11,16,"auffällig"],[17,48,"deutlich auffällig"]],
       calc:a=>a.reduce((s,x)=>s+x,0)}]
+  }  ,
+  saa18:{
+    name:"SAA-18", subtitle:"Aufmerksamkeit und Aktivität", clientLabel:"Aufmerksamkeit und Aktivität",
+    options:["Nie","Selten","Gelegentlich","Häufig","Sehr häufig"], base:0, unvalidated:true, profile:"saa",
+    itemOptions:{18:["Nein","Unsicher","Ja"],19:["Nein","Unsicher","Ja"],20:["Nein","Unsicher","Ja"]},
+    stem:"Wie oft traf das in den letzten 6 Monaten auf Sie zu? Denken Sie an Ihren normalen Alltag, nicht an Ausnahmesituationen.",
+    stemFor:{18:"Zum Schluss noch drei Fragen zum Hintergrund.",19:"Zum Schluss noch drei Fragen zum Hintergrund.",20:"Zum Schluss noch drei Fragen zum Hintergrund."},
+    items:[
+      "Bei Routinearbeiten (z. B. Formulare ausfüllen, Texte prüfen) übersehe ich Einzelheiten und mache Flüchtigkeitsfehler.",
+      "Ich muss ständig etwas tun oder in Bewegung sein, als ob mich etwas antreibt.",
+      "Bei eintönigen oder langwierigen Aufgaben schweifen meine Gedanken ab, bevor ich fertig bin.",
+      "Andere sagen mir, dass ich zu viel rede, oder ich merke selbst, dass andere kaum zu Wort kommen.",
+      "Im Gespräch merke ich, dass ich nicht mitbekommen habe, was mein Gegenüber gerade gesagt hat, obwohl es mich direkt anspricht.",
+      "Ich antworte, bevor eine Frage zu Ende gestellt ist, oder beende die Sätze anderer.",
+      "Wenn der interessante Teil einer Aufgabe erledigt ist, fällt es mir schwer, auch die letzten Schritte noch abzuschließen.",
+      "Warten (z. B. in einer Schlange oder bis ich an der Reihe bin) macht mich sehr ungeduldig.",
+      "Muss ich etwas mit mehreren Schritten planen, verliere ich den Überblick darüber, was in welcher Reihenfolge zu tun ist.",
+      "Ich unterbreche andere oder mische mich ein, während sie sprechen oder beschäftigt sind.",
+      "Aufgaben, die viel Nachdenken und Konzentration erfordern, schiebe ich vor mir her.",
+      "Wenn ich länger sitzen muss, bewege ich ständig Hände oder Füße (z. B. mit dem Stift spielen, mit dem Fuß wippen).",
+      "Ich suche nach Alltagsgegenständen (z. B. Schlüssel, Handy, Unterlagen), weil ich nicht mehr weiß, wo ich sie hingelegt habe.",
+      "In Situationen, in denen Sitzenbleiben erwartet wird (z. B. Besprechungen, Vorträge), stehe ich auf oder möchte am liebsten aufstehen.",
+      "Geräusche oder Bewegungen um mich herum bringen mich von dem ab, was ich gerade tue.",
+      "Ich fühle mich innerlich unruhig und angespannt, ohne dass es dafür einen klaren Anlass gibt.",
+      "Ich vergesse Termine, Absprachen oder Dinge, die ich mir vorgenommen hatte.",
+      "In meiner freien Zeit fällt es mir schwer, abzuschalten und einfach nichts zu tun.",
+      "Gab es die beschriebenen Schwierigkeiten (einige davon) schon in Ihrer Kindheit, also vor dem 12. Lebensjahr?",
+      "Treten die Schwierigkeiten in mehreren Lebensbereichen auf (z. B. Beruf oder Ausbildung, Partnerschaft und Familie, Freizeit, Haushalt und Finanzen)?",
+      "Beeinträchtigen die Schwierigkeiten Ihr Leben deutlich (z. B. Probleme im Beruf, Konflikte, verpasste Chancen, Unfälle)?"
+    ],
+    scales:[
+      {key:"saaGes",name:"SAA-18 gesamt",axis:"Summenwert 0–72",max:72,better:"low",idx:SAA_ALL,
+       bands:[[0,23,"unauffällig"],[24,35,"leicht erhöht"],[36,47,"deutlich erhöht"],[48,72,"stark erhöht"]]},
+      {key:"saaU",name:"SAA-18 Unaufmerksamkeit",axis:"Summenwert 0–36",max:36,better:"low",idx:SAA_U,
+       bands:[[0,11,"unauffällig"],[12,17,"leicht erhöht"],[18,23,"deutlich erhöht"],[24,36,"stark erhöht"]]},
+      {key:"saaH",name:"SAA-18 Hyperaktivität/Impulsivität",axis:"Summenwert 0–36",max:36,better:"low",idx:SAA_H,
+       bands:[[0,11,"unauffällig"],[12,17,"leicht erhöht"],[18,23,"deutlich erhöht"],[24,36,"stark erhöht"]]},
+      {key:"saaKS",name:"Kurzscreener",axis:"0–6 positive Items",max:6,better:"low",hide:true,
+       bands:[[0,2,"unauffällig"],[3,3,"grenzwertig"],[4,6,"auffällig"]],calc:a=>SAA_KS.filter(i=>a[i]>=SAA_THR[i]).length},
+      {key:"saaSU",name:"Symptomzahl U",axis:"0–9 positive Items",max:9,better:"low",hide:true,
+       bands:[[0,3,"unauffällig"],[4,4,"grenzwertig"],[5,9,"auffällig"]],calc:a=>SAA_U.filter(i=>a[i]>=SAA_THR[i]).length},
+      {key:"saaSH",name:"Symptomzahl H",axis:"0–9 positive Items",max:9,better:"low",hide:true,
+       bands:[[0,3,"unauffällig"],[4,4,"grenzwertig"],[5,9,"auffällig"]],calc:a=>SAA_H.filter(i=>a[i]>=SAA_THR[i]).length}
+    ]
   }
 };
 const FBM_INV=[26,22,33,8,35,15];
@@ -539,7 +588,7 @@ const fbmM=k=>FBM_MOT.find(m=>m.key===k);
 function fbmG(a,k){const m=fbmM(k);return m.wish.reduce((s,i)=>s+fbmVal(a,i),0)+m.frust.reduce((s,i)=>s+a[i],0)}
 function fbmF(a,k){return fbmM(k).frust.reduce((s,i)=>s+a[i],0)}
 
-const COLOR = {phq9:"var(--s1)",gad7:"var(--s2)",who5:"var(--s3)",sss8:"var(--s4)",dassD:"var(--s1)",dassA:"var(--s2)",dassS:"var(--s3)",sbA:"var(--s4)",sbB:"var(--s2)",sbC:"var(--s3)",oci12:"var(--s1)"};
+const COLOR = {saaGes:"var(--s1)",saaU:"var(--s2)",saaH:"var(--s3)",phq9:"var(--s1)",gad7:"var(--s2)",who5:"var(--s3)",sss8:"var(--s4)",dassD:"var(--s1)",dassA:"var(--s2)",dassS:"var(--s3)",sbA:"var(--s4)",sbB:"var(--s2)",sbC:"var(--s3)",oci12:"var(--s1)"};
 let KEYS=[], SCALE={}, FLAGS=[];
 function rebuildRegistry(){
   KEYS = Object.keys(INSTR);
@@ -554,6 +603,8 @@ function rebuildRegistry(){
 rebuildRegistry();
 const scalesOf = k => INSTR[k].scales;
 const sum = a => a.reduce((s,x)=>s+x,0);
+const optsOf = (ins,i) => (ins.itemOptions&&ins.itemOptions[i]) || ins.options;
+const stemOf = (ins,i) => (ins.stemFor&&ins.stemFor[i]) || ins.stem;
 
 function sevIndex(sc,v){for(let i=0;i<sc.bands.length;i++) if(v<=sc.bands[i][1]) return i; return sc.bands.length-1}
 function sevChip(sc,v){
@@ -637,7 +688,7 @@ const fmtTime=ts=>new Date(ts).toLocaleTimeString("de-DE",{hour:"2-digit",minute
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const normCode=s=>s.toUpperCase().replace(/[^A-Z0-9ÄÖÜ-]/g,"").slice(0,12);
 const testsOf = code => (store.clients[code]&&store.clients[code].tests||[]).filter(k=>INSTR[k]);
-const valid = (k,a) => Array.isArray(a) && a.length===INSTR[k].items.length && a.every(v=>Number.isInteger(v)&&v>=0&&v<INSTR[k].options.length);
+const valid = (k,a) => Array.isArray(a) && a.length===INSTR[k].items.length && a.every((v,i)=>Number.isInteger(v)&&v>=0&&v<optsOf(INSTR[k],i).length);
 const scoreOf = (e,scKey) => { const sc=SCALE[scKey], a=e.a&&e.a[sc.instr]; return valid(sc.instr,a)? sc.calc(a) : null; };
 const flagsIn = e => FLAGS.map(k=>{
   const a=e.a&&e.a[k], f=INSTR[k].flag;
@@ -758,10 +809,10 @@ function renderQuiz(){
     <main class="kiosk-main" style="justify-content:flex-start;gap:22px">
       <div class="progress" aria-hidden="true">${bars}</div>
       <div class="q-meta"><span class="eyebrow">Teil ${tIdx+1} von ${quiz.tests.length}</span><span class="eyebrow">Frage ${s.i+1} von ${ins.items.length}</span></div>
-      <p class="q-stem" style="margin:0">${ins.stem}</p>
+      <p class="q-stem" style="margin:0">${stemOf(ins,s.i)}</p>
       <h1 class="q-text" id="qtext">${esc(s.t)}</h1>
       <div class="answers" role="group" aria-labelledby="qtext">
-        ${ins.options.map((o,v)=>`<button class="answer" data-v="${v}" aria-pressed="${cur===v}"><span class="dot"></span>${o}</button>`).join("")}
+        ${optsOf(ins,s.i).map((o,v)=>`<button class="answer" data-v="${v}" aria-pressed="${cur===v}"><span class="dot"></span>${o}</button>`).join("")}
       </div>
       <div class="q-nav">
         <button class="btn big" id="back" ${quiz.step===0?"disabled":""}>Zurück</button>
@@ -928,6 +979,7 @@ function renderDetail(){
       <div class="stat"><span class="eyebrow">Befragungen</span><span class="v">${es.length}</span><span class="d">erste am ${fmtDate(first.ts)}</span></div>
     </div>
     <div class="charts">${scales.map(sc=>`<div class="chart"><h3><span class="sw" style="background:${sc.color}"></span>${sc.name} im Verlauf</h3><p>${sc.axis}${sc.bands?", Flächen = Schweregrade":""}</p><div id="c-${sc.key}"></div></div>`).join("")}</div>
+    ${saaBlock(es)}
     ${fbmBlock(es)}
     <div>
       <span class="eyebrow">Alle Befragungen</span>
@@ -1044,7 +1096,7 @@ function renderPaper(instrKey){
     </div>
     <div class="pe-sec"><h3>${ins.name} <span class="num muted" id="peSum">0 von ${ins.items.length} beantwortet</span></h3>
       ${ins.items.map((t,i)=>`<div class="pe-row" data-i="${i}"><span class="n">${i+1}</span><span class="t">${esc(t)}</span>
-        <div class="seg" role="group" aria-label="Frage ${i+1}">${ins.options.map((o,v)=>`<button type="button" data-v="${v}" aria-pressed="false" title="${esc(o)}">${v+(ins.base||0)}</button>`).join("")}</div></div>`).join("")}
+        <div class="seg" role="group" aria-label="Frage ${i+1}">${optsOf(ins,i).map((o,v)=>`<button type="button" data-v="${v}" aria-pressed="false" title="${esc(o)}">${optsOf(ins,i)===ins.options?(v+(ins.base||0)):esc(o.slice(0,3))}</button>`).join("")}</div></div>`).join("")}
     </div>
     <div class="msg" id="peMsg" role="alert"></div>
     <div class="row" style="justify-content:flex-end"><button type="button" class="btn" id="peCancel2">Abbrechen</button><button class="btn primary">Befragung speichern</button></div>
@@ -1076,6 +1128,39 @@ function renderPaper(instrKey){
     else store.entries.push({id:uid(),code:selected,ts,a:{[k]:ans.slice()},src:"paper"});
     save();toast(`${ins.name} vom ${fmtDate(ts)} gespeichert`);renderClients();
   };
+}
+
+/* ================= SAA-18: Screening-Auswertung ================= */
+function saaEntries(es){return es.filter(e=>valid("saa18",e.a&&e.a.saa18))}
+function saaBlock(es){
+  const se=saaEntries(es);
+  if(!se.length) return "";
+  const last=se[se.length-1], a=last.a.saa18;
+  const ks=SCALE.saaKS.calc(a), su=SCALE.saaSU.calc(a), sh=SCALE.saaSH.calc(a);
+  const zLab=["Nein","Unsicher","Ja"], z=SAA_Z.map(i=>a[i]);
+  const zJa=z.filter(v=>v===2).length;
+  const positiv = ks>=4 || su>=5 || sh>=5;
+  const erhaertet = positiv && zJa>=2;
+  const bild = su>=5&&sh>=5 ? "gemischtes Bild" : su>=5 ? "vorwiegend unaufmerksames Bild" : sh>=5 ? "vorwiegend hyperaktiv-impulsives Bild" : "keine Symptomhäufung über der Schwelle";
+  const viele4 = SAA_ALL.filter(i=>a[i]===4).length;
+  const kv=(sc,v)=>`<div class="stat"><span class="eyebrow">${sc.name}</span><span class="v">${v}<small> / ${sc.max}</small></span><span>${sevChip(sc,v)}</span></div>`;
+  return `<div class="fbm">
+    <div class="instr-head"><h3 style="font-size:1.1rem">ADHS-Screening (SAA-18)</h3><span class="scale-note">Stand ${fmtDate(last.ts)}</span></div>
+    <div class="summary">${kv(SCALE.saaKS,ks)}${kv(SCALE.saaSU,su)}${kv(SCALE.saaSH,sh)}</div>
+    <div class="${positiv?"alert":"note-ok"}" style="${positiv?"":"border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2);border-radius:12px;padding:12px 14px"}">
+      <strong>${positiv?"Screening positiv":"Screening unauffällig"}</strong> – ${bild}.
+      ${positiv?`${erhaertet?"Zusätzlich sind mindestens zwei der drei Zusatzfragen mit „ja“ beantwortet, der Verdacht ist damit erhärtet.":"Von den drei Zusatzfragen ist weniger als zwei mit „ja“ beantwortet."} Eine ausführliche ADHS-Diagnostik ist angezeigt; dieser Bogen ersetzt sie nicht.`:"Aus dem Screening ergibt sich kein Hinweis."}
+      ${z[0]!==2?" Ohne Beginn in der Kindheit (Z1) ist an andere Ursachen zu denken.":""}
+    </div>
+    <div class="fbm-grid" style="grid-template-columns:minmax(0,1fr) auto">
+      ${["Beginn vor dem 12. Lebensjahr","Mehrere Lebensbereiche betroffen","Deutliche Beeinträchtigung"].map((t,i)=>`<div class="fbm-row">
+        <span class="fbm-name" style="font-weight:400">Z${i+1} · ${t}</span>
+        <span class="fbm-tags"><span class="chip ${z[i]===2?"sev2":z[i]===1?"sev0":"sev0"}" style="${z[i]===2?"":"background:var(--surface-2);color:var(--ink-2)"}">${zLab[z[i]]}</span></span>
+      </div>`).join("")}
+    </div>
+    ${viele4>=15?`<p class="fbm-note"><strong>Hinweis:</strong> ${viele4} von 18 Items wurden mit „sehr häufig“ beantwortet. Auf Antworttendenz, akute Belastung oder andere Störungsbilder achten.</p>`:""}
+    <p class="fbm-note">Die Grenzwerte lehnen sich an die Logik der ASRS an, sind für diesen Bogen aber nicht empirisch geprüft. Positiv gilt ein Item ab dem für dieses Item festgelegten Wert („gelegentlich“ oder „häufig“).</p>
+  </div>`;
 }
 
 /* ================= Ansicht für Klienten ================= */
